@@ -1,3 +1,19 @@
+# TESTS
+# Simple set/get
+# Simple remove
+# Simple containsKey
+# Simple keys
+# Simple values
+# Simple clear
+# Get of unknown key returns NULL
+# Remove of unknown key does nothing
+# Setting a key twice always results in last-one-wins
+# /TESTS
+
+# Note that Map objects can't be saved in one R session and restored in
+# another, because they are based on fastmap, which uses an external pointer,
+# and external pointers can't be saved and restored in another session.
+#' @importFrom fastmap fastmap
 Map <- R6Class(
   'Map',
   portable = FALSE,
@@ -48,12 +64,9 @@ Map <- R6Class(
   )
 )
 
-#' @export
-as.list.Map <- function(x, ...) {
-  x$values()
+as.list.Map <- function(map) {
+  map$values()
 }
-
-#' @export
-length.Map <- function(x) {
-  x$size()
+length.Map <- function(map) {
+  map$size()
 }

@@ -2,19 +2,10 @@
 % Please edit documentation in R/modal.R
 \name{modalDialog}
 \alias{modalDialog}
-\alias{modalButton}
 \title{Create a modal dialog UI}
 \usage{
-modalDialog(
-  ...,
-  title = NULL,
-  footer = modalButton("Dismiss"),
-  size = c("m", "s", "l", "xl"),
-  easyClose = FALSE,
-  fade = TRUE
-)
-
-modalButton(label, icon = NULL)
+modalDialog(..., title = NULL, footer = modalButton("Dismiss"),
+  size = c("m", "s", "l"), easyClose = FALSE, fade = TRUE)
 }
 \arguments{
 \item{...}{UI elements for the body of the modal dialog box.}
@@ -24,33 +15,21 @@ modalButton(label, icon = NULL)
 \item{footer}{UI for footer. Use \code{NULL} for no footer.}
 
 \item{size}{One of \code{"s"} for small, \code{"m"} (the default) for medium,
-\code{"l"} for large, or \code{"xl"} for extra large. Note that \code{"xl"} only
-works with Bootstrap 4 and above (to opt-in to Bootstrap 4+,
-pass \code{\link[bslib:bs_theme]{bslib::bs_theme()}} to the \code{theme} argument of a page container
-like \code{\link[=fluidPage]{fluidPage()}}).}
+or \code{"l"} for large.}
 
 \item{easyClose}{If \code{TRUE}, the modal dialog can be dismissed by
 clicking outside the dialog box, or be pressing the Escape key. If
 \code{FALSE} (the default), the modal dialog can't be dismissed in those
-ways; instead it must be dismissed by clicking on a \code{modalButton()}, or
+ways; instead it must be dismissed by clicking on the dismiss button, or
 from a call to \code{\link[=removeModal]{removeModal()}} on the server.}
 
 \item{fade}{If \code{FALSE}, the modal dialog will have no fade-in animation
 (it will simply appear rather than fade in to view).}
-
-\item{label}{The contents of the button or link--usually a text label, but
-you could also use any other HTML, like an image.}
-
-\item{icon}{An optional \code{\link[=icon]{icon()}} to appear on the button.}
 }
 \description{
-\code{modalDialog()} creates the UI for a modal dialog, using Bootstrap's modal
-class. Modals are typically used for showing important messages, or for
-presenting UI that requires input from the user, such as a user name and
-password input.
-
-\code{modalButton()} creates a button that will dismiss the dialog when clicked,
-typically used when customising the \code{footer}.
+This creates the UI for a modal dialog, using Bootstrap's modal class. Modals
+are typically used for showing important messages, or for presenting UI that
+requires input from the user, such as a username and password input.
 }
 \examples{
 if (interactive()) {

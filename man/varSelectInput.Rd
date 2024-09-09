@@ -5,16 +5,8 @@
 \alias{varSelectizeInput}
 \title{Select variables from a data frame}
 \usage{
-varSelectInput(
-  inputId,
-  label,
-  data,
-  selected = NULL,
-  multiple = FALSE,
-  selectize = TRUE,
-  width = NULL,
-  size = NULL
-)
+varSelectInput(inputId, label, data, selected = NULL, multiple = FALSE,
+  selectize = TRUE, width = NULL, size = NULL)
 
 varSelectizeInput(inputId, ..., options = NULL, width = NULL)
 }
@@ -25,8 +17,9 @@ varSelectizeInput(inputId, ..., options = NULL, width = NULL)
 
 \item{data}{A data frame. Used to retrieve the column names as choices for a \code{\link[=selectInput]{selectInput()}}}
 
-\item{selected}{The initially selected value (or multiple values if \code{multiple = TRUE}). If not specified then defaults to the first value for
-single-select lists and no values for multiple select lists.}
+\item{selected}{The initially selected value (or multiple values if
+\code{multiple = TRUE}). If not specified then defaults to the first value
+for single-select lists and no values for multiple select lists.}
 
 \item{multiple}{Is selection of multiple items allowed?}
 
@@ -37,13 +30,13 @@ see \code{\link[=validateCssUnit]{validateCssUnit()}}.}
 
 \item{size}{Number of items to show in the selection box; a larger number
 will result in a taller box. Not compatible with \code{selectize=TRUE}.
-Normally, when \code{multiple=FALSE}, a select input will be a drop-down list,
-but when \code{size} is set, it will be a box instead.}
+Normally, when \code{multiple=FALSE}, a select input will be a drop-down
+list, but when \code{size} is set, it will be a box instead.}
 
 \item{...}{Arguments passed to \code{varSelectInput()}.}
 
-\item{options}{A list of options. See the documentation of \pkg{selectize.js}(\url{https://selectize.dev/docs/usage})
-for possible options (character option values inside \code{\link[base:AsIs]{base::I()}} will
+\item{options}{A list of options. See the documentation of \pkg{selectize.js}
+for possible options (character option values inside \code{\link[base:I]{base::I()}} will
 be treated as literal JavaScript code; see \code{\link[=renderDataTable]{renderDataTable()}}
 for details).}
 }
@@ -55,9 +48,21 @@ Create a select list that can be used to choose a single or multiple items
 from the column names of a data frame.
 }
 \details{
+The resulting server \code{input} value will be returned as:
+\itemize{
+\item a symbol if \code{multiple = FALSE}.  The \code{input} value should be
+used with rlang's \code{\link[rlang:!!]{rlang::!!()}}. For example,
+\code{ggplot2::aes(!!input$variable)}.
+\item a list of symbols if \code{multiple = TRUE}. The \code{input} value
+should be used with rlang's \code{\link[rlang:!!!]{rlang::!!!()}} to expand
+the symbol list as individual arguments. For example,
+\code{dplyr::select(mtcars, !!!input$variabls)} which is
+equivalent to \code{dplyr::select(mtcars, !!input$variabls[[1]], !!input$variabls[[2]], ..., !!input$variabls[[length(input$variabls)]])}.
+}
+
 By default, \code{varSelectInput()} and \code{selectizeInput()} use the
 JavaScript library \pkg{selectize.js}
-(\url{https://selectize.dev/}) to instead of the basic
+(\url{https://github.com/selectize/selectize.js}) to instead of the basic
 select input element. To use the standard HTML select input element, use
 \code{selectInput()} with \code{selectize=FALSE}.
 }
@@ -71,21 +76,6 @@ value when it is a single choice input and the empty string is not in the
 \code{choices} argument. This is to keep compatibility with
 \code{selectInput(..., selectize = FALSE)}.
 }
-\section{Server value}{
-
-The resulting server \code{input} value will be returned as:
-\itemize{
-\item A symbol if \code{multiple = FALSE}. The \code{input} value should be
-used with rlang's \code{\link[rlang:injection-operator]{rlang::!!()}}. For example,
-\code{ggplot2::aes(!!input$variable)}.
-\item A list of symbols if \code{multiple = TRUE}. The \code{input} value
-should be used with rlang's \code{\link[rlang:splice-operator]{rlang::!!!()}} to expand
-the symbol list as individual arguments. For example,
-\code{dplyr::select(mtcars, !!!input$variabls)} which is
-equivalent to \code{dplyr::select(mtcars, !!input$variabls[[1]], !!input$variabls[[2]], ..., !!input$variabls[[length(input$variabls)]])}.
-}
-}
-
 \examples{
 
 ## Only run examples in interactive R sessions
@@ -127,20 +117,13 @@ shinyApp(
 \seealso{
 \code{\link[=updateSelectInput]{updateSelectInput()}}
 
-Other input elements: 
-\code{\link{actionButton}()},
-\code{\link{checkboxGroupInput}()},
-\code{\link{checkboxInput}()},
-\code{\link{dateInput}()},
-\code{\link{dateRangeInput}()},
-\code{\link{fileInput}()},
-\code{\link{numericInput}()},
-\code{\link{passwordInput}()},
-\code{\link{radioButtons}()},
-\code{\link{selectInput}()},
-\code{\link{sliderInput}()},
-\code{\link{submitButton}()},
-\code{\link{textAreaInput}()},
-\code{\link{textInput}()}
+Other input elements: \code{\link{actionButton}},
+  \code{\link{checkboxGroupInput}},
+  \code{\link{checkboxInput}}, \code{\link{dateInput}},
+  \code{\link{dateRangeInput}}, \code{\link{fileInput}},
+  \code{\link{numericInput}}, \code{\link{passwordInput}},
+  \code{\link{radioButtons}}, \code{\link{selectInput}},
+  \code{\link{sliderInput}}, \code{\link{submitButton}},
+  \code{\link{textAreaInput}}, \code{\link{textInput}}
 }
 \concept{input elements}

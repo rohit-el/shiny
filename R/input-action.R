@@ -7,8 +7,6 @@
 #' @param label The contents of the button or link--usually a text label, but
 #'   you could also use any other HTML, like an image.
 #' @param icon An optional [icon()] to appear on the button.
-#' @param disabled If `TRUE`, the button will not be clickable. Use
-#'   [updateActionButton()] to dynamically enable/disable the button.
 #' @param ... Named attributes to be applied to the button or link.
 #'
 #' @family input elements
@@ -18,7 +16,7 @@
 #'
 #' ui <- fluidPage(
 #'   sliderInput("obs", "Number of observations", 0, 1000, 500),
-#'   actionButton("goButton", "Go!", class = "btn-success"),
+#'   actionButton("goButton", "Go!"),
 #'   plotOutput("distPlot")
 #' )
 #'
@@ -38,30 +36,17 @@
 #'
 #' }
 #'
-#' ## Example of adding extra class values
-#' actionButton("largeButton", "Large Primary Button", class = "btn-primary btn-lg")
-#' actionLink("infoLink", "Information Link", class = "btn-info")
-#'
 #' @seealso [observeEvent()] and [eventReactive()]
-#'
-#' @section Server value:
-#' An integer of class `"shinyActionButtonValue"`. This class differs from
-#' ordinary integers in that a value of 0 is considered "falsy".
-#' This implies two things:
-#'   * Event handlers (e.g., [observeEvent()], [eventReactive()]) won't execute on initial load.
-#'   * Input validation (e.g., [req()], [need()]) will fail on initial load.
 #' @export
-actionButton <- function(inputId, label, icon = NULL, width = NULL,
-  disabled = FALSE, ...) {
+actionButton <- function(inputId, label, icon = NULL, width = NULL, ...) {
 
   value <- restoreInput(id = inputId, default = NULL)
 
   tags$button(id=inputId,
-    style = css(width = validateCssUnit(width)),
+    style = if (!is.null(width)) paste0("width: ", validateCssUnit(width), ";"),
     type="button",
     class="btn btn-default action-button",
     `data-val` = value,
-    disabled = if (isTRUE(disabled)) NA else NULL,
     list(validateIcon(icon), label),
     ...
   )

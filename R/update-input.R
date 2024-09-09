@@ -1,7 +1,8 @@
 #' Change the value of a text input on the client
 #'
 #' @template update-input
-#' @inheritParams textInput
+#' @param value The value to set for the input object.
+#' @param placeholder The placeholder to set for the input object.
 #'
 #' @seealso [textInput()]
 #'
@@ -34,9 +35,7 @@
 #' shinyApp(ui, server)
 #' }
 #' @export
-updateTextInput <- function(session = getDefaultReactiveDomain(), inputId, label = NULL, value = NULL, placeholder = NULL) {
-  validate_session_object(session)
-
+updateTextInput <- function(session, inputId, label = NULL, value = NULL, placeholder = NULL) {
   message <- dropNulls(list(label=label, value=value, placeholder=placeholder))
   session$sendInputMessage(inputId, message)
 }
@@ -83,7 +82,7 @@ updateTextAreaInput <- updateTextInput
 #' Change the value of a checkbox input on the client
 #'
 #' @template update-input
-#' @inheritParams checkboxInput
+#' @param value The value to set for the input object.
 #'
 #' @seealso [checkboxInput()]
 #'
@@ -108,9 +107,7 @@ updateTextAreaInput <- updateTextInput
 #' shinyApp(ui, server)
 #' }
 #' @export
-updateCheckboxInput <- function(session = getDefaultReactiveDomain(), inputId, label = NULL, value = NULL) {
-  validate_session_object(session)
-
+updateCheckboxInput <- function(session, inputId, label = NULL, value = NULL) {
   message <- dropNulls(list(label=label, value=value))
   session$sendInputMessage(inputId, message)
 }
@@ -119,9 +116,8 @@ updateCheckboxInput <- function(session = getDefaultReactiveDomain(), inputId, l
 #' Change the label or icon of an action button on the client
 #'
 #' @template update-input
-#' @param disabled If `TRUE`, the button will not be clickable; if `FALSE`, it
-#'   will be.
-#' @inheritParams actionButton
+#' @param icon The icon to set for the input object. To remove the
+#' current icon, use `icon=character(0)`.
 #'
 #' @seealso [actionButton()]
 #'
@@ -130,15 +126,13 @@ updateCheckboxInput <- function(session = getDefaultReactiveDomain(), inputId, l
 #' if (interactive()) {
 #'
 #' ui <- fluidPage(
-#'   actionButton("update", "Update other buttons and link"),
+#'   actionButton("update", "Update other buttons"),
 #'   br(),
 #'   actionButton("goButton", "Go"),
 #'   br(),
 #'   actionButton("goButton2", "Go 2", icon = icon("area-chart")),
 #'   br(),
-#'   actionButton("goButton3", "Go 3"),
-#'   br(),
-#'   actionLink("goLink", "Go Link")
+#'   actionButton("goButton3", "Go 3")
 #' )
 #'
 #' server <- function(input, output, session) {
@@ -150,45 +144,37 @@ updateCheckboxInput <- function(session = getDefaultReactiveDomain(), inputId, l
 #'       label = "New label",
 #'       icon = icon("calendar"))
 #'
-#'     # Leaves goButton2's label unchanged and
+#'     # Leaves goButton2's label unchaged and
 #'     # removes its icon
 #'     updateActionButton(session, "goButton2",
 #'       icon = character(0))
 #'
 #'     # Leaves goButton3's icon, if it exists,
-#'     # unchanged and changes its label
+#'     # unchaged and changes its label
 #'     updateActionButton(session, "goButton3",
 #'       label = "New label 3")
-#'
-#'     # Updates goLink's label and icon
-#'     updateActionButton(session, "goLink",
-#'       label = "New link label",
-#'       icon = icon("link"))
 #'   })
 #' }
 #'
 #' shinyApp(ui, server)
 #' }
-#' @rdname updateActionButton
 #' @export
-updateActionButton <- function(session = getDefaultReactiveDomain(), inputId, label = NULL, icon = NULL, disabled = NULL) {
-  validate_session_object(session)
-
+updateActionButton <- function(session, inputId, label = NULL, icon = NULL) {
   if (!is.null(icon)) icon <- as.character(validateIcon(icon))
-  message <- dropNulls(list(label=label, icon=icon, disabled=disabled))
+  message <- dropNulls(list(label=label, icon=icon))
   session$sendInputMessage(inputId, message)
-}
-#' @rdname updateActionButton
-#' @export
-updateActionLink <- function(session = getDefaultReactiveDomain(), inputId, label = NULL, icon = NULL) {
-  updateActionButton(session, inputId=inputId, label=label, icon=icon)
 }
 
 
 #' Change the value of a date input on the client
 #'
 #' @template update-input
-#' @inheritParams dateInput
+#' @param value The desired date value. Either a Date object, or a string in
+#'   `yyyy-mm-dd` format. Supply `NA` to clear the date.
+#' @param min The minimum allowed date. Either a Date object, or a string in
+#'   `yyyy-mm-dd` format.
+#' @param max The maximum allowed date. Either a Date object, or a string in
+#'   `yyyy-mm-dd` format.
 #'
 #' @seealso [dateInput()]
 #'
@@ -216,10 +202,8 @@ updateActionLink <- function(session = getDefaultReactiveDomain(), inputId, labe
 #' shinyApp(ui, server)
 #' }
 #' @export
-updateDateInput <- function(session = getDefaultReactiveDomain(), inputId, label = NULL, value = NULL,
-                            min = NULL, max = NULL)
-{
-  validate_session_object(session)
+updateDateInput <- function(session, inputId, label = NULL, value = NULL,
+                            min = NULL, max = NULL) {
 
   value <- dateYMD(value, "value")
   min   <- dateYMD(min, "min")
@@ -233,7 +217,14 @@ updateDateInput <- function(session = getDefaultReactiveDomain(), inputId, label
 #' Change the start and end values of a date range input on the client
 #'
 #' @template update-input
-#' @inheritParams dateRangeInput
+#' @param start The start date. Either a Date object, or a string in
+#'   `yyyy-mm-dd` format. Supplying `NA` clears the start date.
+#' @param end The end date. Either a Date object, or a string in
+#'   `yyyy-mm-dd` format. Supplying `NA` clears the end date.
+#' @param min The minimum allowed date. Either a Date object, or a string in
+#'   `yyyy-mm-dd` format.
+#' @param max The maximum allowed date. Either a Date object, or a string in
+#'   `yyyy-mm-dd` format.
 #'
 #' @seealso [dateRangeInput()]
 #'
@@ -263,11 +254,9 @@ updateDateInput <- function(session = getDefaultReactiveDomain(), inputId, label
 #' shinyApp(ui, server)
 #' }
 #' @export
-updateDateRangeInput <- function(session = getDefaultReactiveDomain(), inputId, label = NULL,
+updateDateRangeInput <- function(session, inputId, label = NULL,
                                  start = NULL, end = NULL, min = NULL,
-                                 max = NULL)
-{
-  validate_session_object(session)
+                                 max = NULL) {
 
   start <- dateYMD(start, "start")
   end <- dateYMD(end, "end")
@@ -287,10 +276,10 @@ updateDateRangeInput <- function(session = getDefaultReactiveDomain(), inputId, 
 #' Change the selected tab on the client
 #'
 #' @param session The `session` object passed to function given to
-#'   `shinyServer`. Default is `getDefaultReactiveDomain()`.
+#'   `shinyServer`.
 #' @param inputId The id of the `tabsetPanel`, `navlistPanel`,
 #' or `navbarPage` object.
-#' @inheritParams tabsetPanel
+#' @param selected The name of the tab to make active.
 #'
 #' @seealso [tabsetPanel()], [navlistPanel()],
 #' [navbarPage()]
@@ -323,9 +312,7 @@ updateDateRangeInput <- function(session = getDefaultReactiveDomain(), inputId, 
 #' shinyApp(ui, server)
 #' }
 #' @export
-updateTabsetPanel <- function(session = getDefaultReactiveDomain(), inputId, selected = NULL) {
-  validate_session_object(session)
-
+updateTabsetPanel <- function(session, inputId, selected = NULL) {
   message <- dropNulls(list(value = selected))
   session$sendInputMessage(inputId, message)
 }
@@ -341,7 +328,10 @@ updateNavlistPanel <- updateTabsetPanel
 #' Change the value of a number input on the client
 #'
 #' @template update-input
-#' @inheritParams numericInput
+#' @param value The value to set for the input object.
+#' @param min Minimum value.
+#' @param max Maximum value.
+#' @param step Step size.
 #'
 #' @seealso [numericInput()]
 #'
@@ -373,10 +363,8 @@ updateNavlistPanel <- updateTabsetPanel
 #' shinyApp(ui, server)
 #' }
 #' @export
-updateNumericInput <- function(session = getDefaultReactiveDomain(), inputId, label = NULL, value = NULL,
+updateNumericInput <- function(session, inputId, label = NULL, value = NULL,
     min = NULL, max = NULL, step = NULL) {
-
-  validate_session_object(session)
 
   message <- dropNulls(list(
     label = label, value = formatNoSci(value),
@@ -390,7 +378,12 @@ updateNumericInput <- function(session = getDefaultReactiveDomain(), inputId, la
 #' Change the value of a slider input on the client.
 #'
 #' @template update-input
-#' @inheritParams sliderInput
+#' @param value The value to set for the input object.
+#' @param min Minimum value.
+#' @param max Maximum value.
+#' @param step Step size.
+#' @param timeFormat Date and POSIXt formatting.
+#' @param timezone The timezone offset for POSIXt objects.
 #'
 #' @seealso [sliderInput()]
 #'
@@ -422,28 +415,9 @@ updateNumericInput <- function(session = getDefaultReactiveDomain(), inputId, la
 #'   )
 #' }
 #' @export
-updateSliderInput <- function(session = getDefaultReactiveDomain(), inputId, label = NULL, value = NULL,
+updateSliderInput <- function(session, inputId, label = NULL, value = NULL,
   min = NULL, max = NULL, step = NULL, timeFormat = NULL, timezone = NULL)
 {
-  validate_session_object(session)
-
-  if (!is.null(value)) {
-    if (!is.null(min) && !is.null(max)) {
-      # Validate value/min/max together if all three are provided
-      tryCatch(
-        validate_slider_value(min, max, value, "updateSliderInput"),
-        error = function(err) warning(conditionMessage(err), call. = FALSE)
-      )
-    } else if (length(value) <  1 || length(value) > 2 || any(is.na(value))) {
-      # Otherwise ensure basic assumptions about value are met
-      warning(
-        "In updateSliderInput(): value must be a single value or a length-2 ",
-        "vector and cannot contain NA values.",
-        call. = FALSE
-      )
-    }
-  }
-
   # If no min/max/value is provided, we won't know the
   # type, and this will return an empty string
   dataType <- getSliderType(min, max, value)
@@ -476,8 +450,6 @@ updateSliderInput <- function(session = getDefaultReactiveDomain(), inputId, lab
 updateInputOptions <- function(session, inputId, label = NULL, choices = NULL,
                                selected = NULL, inline = FALSE, type = NULL,
                                choiceNames = NULL, choiceValues = NULL) {
-  validate_session_object(session)
-
   if (is.null(type)) stop("Please specify the type ('checkbox' or 'radio')")
 
   args <- normalizeChoicesArgs(choices, choiceNames, choiceValues, mustExist = FALSE)
@@ -535,12 +507,9 @@ updateInputOptions <- function(session, inputId, label = NULL, choices = NULL,
 #' shinyApp(ui, server)
 #' }
 #' @export
-updateCheckboxGroupInput <- function(session = getDefaultReactiveDomain(), inputId, label = NULL,
+updateCheckboxGroupInput <- function(session, inputId, label = NULL,
   choices = NULL, selected = NULL, inline = FALSE,
-  choiceNames = NULL, choiceValues = NULL)
-{
-  validate_session_object(session)
-
+  choiceNames = NULL, choiceValues = NULL) {
   updateInputOptions(session, inputId, label, choices, selected,
                      inline, "checkbox", choiceNames, choiceValues)
 }
@@ -581,12 +550,9 @@ updateCheckboxGroupInput <- function(session = getDefaultReactiveDomain(), input
 #' shinyApp(ui, server)
 #' }
 #' @export
-updateRadioButtons <- function(session = getDefaultReactiveDomain(), inputId, label = NULL, choices = NULL,
+updateRadioButtons <- function(session, inputId, label = NULL, choices = NULL,
                                selected = NULL, inline = FALSE,
-                               choiceNames = NULL, choiceValues = NULL)
-{
-  validate_session_object(session)
-
+                               choiceNames = NULL, choiceValues = NULL) {
   # you must select at least one radio button
   if (is.null(selected)) {
     if (!is.null(choices)) selected <- choices[[1]]
@@ -636,14 +602,11 @@ updateRadioButtons <- function(session = getDefaultReactiveDomain(), inputId, la
 #' shinyApp(ui, server)
 #' }
 #' @export
-updateSelectInput <- function(session = getDefaultReactiveDomain(), inputId, label = NULL, choices = NULL,
-                              selected = NULL)
-{
-  validate_session_object(session)
-
+updateSelectInput <- function(session, inputId, label = NULL, choices = NULL,
+                              selected = NULL) {
   choices <- if (!is.null(choices)) choicesWithNames(choices)
   if (!is.null(selected)) selected <- as.character(selected)
-  options <- if (!is.null(choices)) selectOptions(choices, selected, inputId, FALSE)
+  options <- if (!is.null(choices)) selectOptions(choices, selected)
   message <- dropNulls(list(label = label, options = options, value = selected))
   session$sendInputMessage(inputId, message)
 }
@@ -655,12 +618,9 @@ updateSelectInput <- function(session = getDefaultReactiveDomain(), inputId, lab
 #'   `choices` into the page at once (i.e., only use the client-side
 #'   version of \pkg{selectize.js})
 #' @export
-updateSelectizeInput <- function(session = getDefaultReactiveDomain(), inputId, label = NULL, choices = NULL,
+updateSelectizeInput <- function(session, inputId, label = NULL, choices = NULL,
                                  selected = NULL, options = list(),
-                                 server = FALSE)
-{
-  validate_session_object(session)
-
+                                 server = FALSE) {
   if (length(options)) {
     res <- checkAsIs(options)
     cfg <- tags$script(
@@ -773,15 +733,12 @@ updateSelectizeInput <- function(session = getDefaultReactiveDomain(), inputId, 
 #' @rdname updateSelectInput
 #' @inheritParams varSelectInput
 #' @export
-updateVarSelectInput <- function(session = getDefaultReactiveDomain(), inputId, label = NULL, data = NULL, selected = NULL) {
-  validate_session_object(session)
-
+updateVarSelectInput <- function(session, inputId, label = NULL, data = NULL, selected = NULL) {
   if (is.null(data)) {
     choices <- NULL
   } else {
     choices <- colnames(data)
   }
-
   updateSelectInput(
     session = session,
     inputId = inputId,
@@ -792,11 +749,7 @@ updateVarSelectInput <- function(session = getDefaultReactiveDomain(), inputId, 
 }
 #' @rdname updateSelectInput
 #' @export
-updateVarSelectizeInput <- function(session = getDefaultReactiveDomain(), inputId, label = NULL,
-                                    data = NULL, selected = NULL, options = list(), server = FALSE)
-{
-  validate_session_object(session)
-
+updateVarSelectizeInput <- function(session, inputId, label = NULL, data = NULL, selected = NULL, options = list(), server = FALSE) {
   if (is.null(data)) {
     choices <- NULL
   } else {

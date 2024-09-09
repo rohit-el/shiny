@@ -35,11 +35,6 @@
 #' shinyApp(ui, server)
 #'
 #' }
-#'
-#' @section Server value:
-#' A character string of the text input. The default value is `""`
-#' unless `value` is provided.
-#'
 #' @export
 textAreaInput <- function(inputId, label, value = "", width = NULL, height = NULL,
   cols = NULL, rows = NULL, placeholder = NULL, resize = NULL) {
@@ -50,19 +45,21 @@ textAreaInput <- function(inputId, label, value = "", width = NULL, height = NUL
     resize <- match.arg(resize, c("both", "none", "vertical", "horizontal"))
   }
 
-  style <- css(
-    # The width is specified on the parent div.
-    width = if (!is.null(width)) "100%",
-    height = validateCssUnit(height),
-    resize = resize
+  style <- paste(
+    if (!is.null(width))  paste0("width: ",  validateCssUnit(width),  ";"),
+    if (!is.null(height)) paste0("height: ", validateCssUnit(height), ";"),
+    if (!is.null(resize)) paste0("resize: ", resize, ";")
   )
+
+  # Workaround for tag attribute=character(0) bug:
+  #   https://github.com/rstudio/htmltools/issues/65
+  if (length(style) == 0) style <- NULL
 
   div(class = "form-group shiny-input-container",
     shinyInputLabel(inputId, label),
-    style = if (!is.null(width)) paste0("width: ", validateCssUnit(width), ";"),
     tags$textarea(
       id = inputId,
-      class = "shiny-input-textarea form-control",
+      class = "form-control",
       placeholder = placeholder,
       style = style,
       rows = rows,

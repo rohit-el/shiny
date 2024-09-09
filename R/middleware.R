@@ -14,26 +14,7 @@
 # returns `NULL`, or an `httpResponse`.
 #
 ## ------------------------------------------------------------------------
-
-#' Create an HTTP response object
-#'
-#' @param status HTTP status code for the response.
-#' @param content_type The value for the `Content-Type` header.
-#' @param content The body of the response, given as a single-element character
-#'   vector (will be encoded as UTF-8) or a raw vector.
-#' @param headers A named list of additional headers to include. Do not include
-#'   `Content-Length` (as it is automatically calculated) or `Content-Type` (the
-#'   `content_type` argument is used instead).
-#'
-#' @examples
-#' httpResponse(status = 405L,
-#'   content_type = "text/plain",
-#'   content = "The requested method was not allowed"
-#' )
-#'
-#' @keywords internal
-#' @export
-httpResponse <- function(status = 200L,
+httpResponse <- function(status = 200,
                          content_type = "text/html; charset=UTF-8",
                          content = "",
                          headers = list()) {
@@ -218,9 +199,6 @@ staticHandler <- function(root) {
     if (path == '/')
       path <- '/index.html'
 
-    if (grepl('\\', path, fixed = TRUE))
-      return(NULL)
-
     abs.path <- resolve(root, path)
     if (is.null(abs.path))
       return(NULL)
@@ -309,7 +287,7 @@ HandlerManager <- R6Class("HandlerManager",
     createHttpuvApp = function() {
       list(
         onHeaders = function(req) {
-          maxSize <- getOption('shiny.maxRequestSize') %||% (5 * 1024 * 1024)
+          maxSize <- getOption('shiny.maxRequestSize') %OR% (5 * 1024 * 1024)
           if (maxSize <= 0)
             return(NULL)
 
@@ -330,32 +308,16 @@ HandlerManager <- R6Class("HandlerManager",
         },
         call = .httpServer(
           function (req) {
-            hybrid_chain(
-              hybrid_chain(
-                withCallingHandlers(withLogErrors(handlers$invoke(req)),
-                  error = function(cond) {
-                    sanitizeErrors <- getOption('shiny.sanitize.errors', FALSE)
-                    if (inherits(cond, 'shiny.custom.error') || !sanitizeErrors) {
-                      stop(cond$message, call. = FALSE)
-                    } else {
-                      stop(paste("An error has occurred. Check your logs or",
-                                 "contact the app author for clarification."),
-                           call. = FALSE)
-                    }
-                  }
-                ),
-                catch = function(err) {
-                  httpResponse(status = 500L,
-                    content_type = "text/html; charset=UTF-8",
-                    content = as.character(htmltools::htmlTemplate(
-                      system_file("template", "error.html", package = "shiny"),
-                      message = conditionMessage(err)
-                    ))
-                  )
+            withCallingHandlers(withLogErrors(handlers$invoke(req)),
+              error = function(cond) {
+                sanitizeErrors <- getOption('shiny.sanitize.errors', FALSE)
+                if (inherits(cond, 'shiny.custom.error') || !sanitizeErrors) {
+                  stop(cond$message, call. = FALSE)
+                } else {
+                  stop(paste("An error has occurred. Check your logs or",
+                             "contact the app author for clarification."),
+                       call. = FALSE)
                 }
-              ),
-              function(resp) {
-                maybeInjectAutoreload(resp)
               }
             )
           },
@@ -424,22 +386,6 @@ HandlerManager <- R6Class("HandlerManager",
     }
   )
 )
-
-maybeInjectAutoreload <- function(resp) {
-  if (get_devmode_option("shiny.autoreload", FALSE) &&
-      isTRUE(grepl("^text/html($|;)", resp$content_type)) &&
-      is.character(resp$content)) {
-
-    resp$content <- gsub(
-      "</head>",
-      "<script src=\"shared/shiny-autoreload.js\"></script>\n</head>",
-      resp$content,
-      fixed = TRUE
-    )
-  }
-
-  resp
-}
 
 # Safely get the Content-Length of a Rook response, or NULL if the length cannot
 # be determined for whatever reason (probably malformed response$content).

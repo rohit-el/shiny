@@ -1,3 +1,5 @@
+context("code diagnostics")
+
 test_that("Code diagnostics", {
   suppressMessages({
     expect_false(diagnoseCode(text = "div(,)"))

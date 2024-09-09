@@ -4,12 +4,8 @@
 \alias{exportTestValues}
 \title{Register expressions for export in test mode}
 \usage{
-exportTestValues(
-  ...,
-  quoted_ = FALSE,
-  env_ = parent.frame(),
-  session_ = getDefaultReactiveDomain()
-)
+exportTestValues(..., quoted_ = FALSE, env_ = parent.frame(),
+  session_ = getDefaultReactiveDomain())
 }
 \arguments{
 \item{...}{Named arguments that are quoted or unquoted expressions that will
@@ -66,7 +62,7 @@ shinyApp(
     })
 
     output$values <- renderText({
-      paste0("vals$x: ", vals$x, "\ny: ", y())
+      paste0("vals$x: ", vals$x, "\\ny: ", y())
     })
   }
 )

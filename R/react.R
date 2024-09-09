@@ -5,7 +5,7 @@ processId <- local({
   cached <- NULL
   function() {
     if (is.null(cached)) {
-      cached <<- rlang::hash(list(
+      cached <<- digest::digest(list(
         Sys.info(),
         Sys.time()
       ))
@@ -31,13 +31,11 @@ Context <- R6Class(
     .flushCallbacks = list(),
     .domain = NULL,
     .pid = NULL,
-    .weak = NULL,
 
     initialize = function(
       domain, label='', type='other', prevId='',
       reactId = rLog$noReactId,
-      id = .getReactiveEnvironment()$nextId(), # For dummy context
-      weak = FALSE
+      id = .getReactiveEnvironment()$nextId() # For dummy context
     ) {
       id <<- id
       .label <<- label
@@ -45,7 +43,6 @@ Context <- R6Class(
       .pid <<- processId()
       .reactId <<- reactId
       .reactType <<- type
-      .weak <<- weak
       rLog$createContext(id, label, type, prevId, domain)
     },
     run = function(func) {
@@ -65,7 +62,7 @@ Context <- R6Class(
         that have been registered with onInvalidate()."
 
       if (!identical(.pid, processId())) {
-        rlang::abort("Reactive context was created in one process and invalidated from another.")
+        stop("Reactive context was created in one process and invalidated from another")
       }
 
       if (.invalidated)
@@ -87,7 +84,7 @@ Context <- R6Class(
         immediately."
 
       if (!identical(.pid, processId())) {
-        rlang::abort("Reactive context was created in one process and accessed from another.")
+        stop("Reactive context was created in one process and accessed from another")
       }
 
       if (.invalidated)
@@ -111,9 +108,6 @@ Context <- R6Class(
       lapply(.flushCallbacks, function(flushCallback) {
         flushCallback()
       })
-    },
-    isWeak = function() {
-      .weak
     }
   )
 )
@@ -140,13 +134,9 @@ ReactiveEnvironment <- R6Class(
         if (isTRUE(getOption('shiny.suppressMissingContextError'))) {
           return(getDummyContext())
         } else {
-          rlang::abort(c(
-            'Operation not allowed without an active reactive context.',
-            paste0(
-              'You tried to do something that can only be done from inside a ',
-              'reactive consumer.'
-            )
-          ))
+          stop('Operation not allowed without an active reactive context. ',
+               '(You tried to do something that can only be done from inside a ',
+               'reactive expression or observer.)')
         }
       }
       return(.currentContext)
@@ -206,8 +196,7 @@ getCurrentContext <- function() {
   .getReactiveEnvironment()$currentContext()
 }
 hasCurrentContext <- function() {
-  !is.null(.getReactiveEnvironment()$.currentContext) ||
-    isTRUE(getOption("shiny.suppressMissingContextError"))
+  !is.null(.getReactiveEnvironment()$.currentContext)
 }
 
 getDummyContext <- function() {
@@ -219,10 +208,10 @@ getDummyContext <- function() {
 
 wrapForContext <- function(func, ctx) {
   force(func)
-  force(ctx) # may be NULL (in the case of maskReactiveContext())
+  force(ctx)
 
   function(...) {
-    .getReactiveEnvironment()$runWith(ctx, function() {
+    ctx$run(function() {
       captureStackTraces(
         func(...)
       )
@@ -234,18 +223,12 @@ reactivePromiseDomain <- function() {
   promises::new_promise_domain(
     wrapOnFulfilled = function(onFulfilled) {
       force(onFulfilled)
-
-      # ctx will be NULL if we're in a maskReactiveContext()
-      ctx <- if (hasCurrentContext()) getCurrentContext() else NULL
-
+      ctx <- getCurrentContext()
       wrapForContext(onFulfilled, ctx)
     },
     wrapOnRejected = function(onRejected) {
       force(onRejected)
-
-      # ctx will be NULL if we're in a maskReactiveContext()
-      ctx <- if (hasCurrentContext()) getCurrentContext() else NULL
-
+      ctx <- getCurrentContext()
       wrapForContext(onRejected, ctx)
     }
   )

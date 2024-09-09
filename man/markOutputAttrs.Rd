@@ -4,7 +4,8 @@
 \alias{markOutputAttrs}
 \title{Mark a render function with attributes that will be used by the output}
 \usage{
-markOutputAttrs(renderFunc, snapshotExclude = NULL, snapshotPreprocess = NULL)
+markOutputAttrs(renderFunc, snapshotExclude = NULL,
+  snapshotPreprocess = NULL)
 }
 \arguments{
 \item{renderFunc}{A function that is suitable for assigning to a Shiny output

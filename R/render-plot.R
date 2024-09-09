@@ -22,31 +22,21 @@
 #'   expedite the rendering of identical plots.
 #'
 #' @param expr An expression that generates a plot.
-#' @param width,height Height and width can be specified in three ways:
-#'   * `"auto"`, the default, uses the size specified by [plotOutput()]
-#'      (i.e. the `offsetWidth`/`offsetHeight`` of the HTML element bound to
-#'      this plot.)
-#'  * An integer, defining the width/height in pixels.
-#'  * A function that returns the width/height in pixels (or `"auto"`).
-#'    The function is executed in a reactive context so that you can refer to
-#'    reactive values and expression to make the width/height reactive.
-#'
-#'   When rendering an inline plot, you must provide numeric values (in pixels)
-#'   to both \code{width} and \code{height}.
+#' @param width,height The width/height of the rendered plot, in pixels; or
+#'   `'auto'` to use the `offsetWidth`/`offsetHeight` of the HTML
+#'   element that is bound to this plot. You can also pass in a function that
+#'   returns the width/height in pixels or `'auto'`; in the body of the
+#'   function you may reference reactive values and functions. When rendering an
+#'   inline plot, you must provide numeric values (in pixels) to both
+#'   `width` and `height`.
 #' @param res Resolution of resulting plot, in pixels per inch. This value is
-#'   passed to [plotPNG()]. Note that this affects the resolution of PNG
+#'   passed to [grDevices::png()]. Note that this affects the resolution of PNG
 #'   rendering in R; it won't change the actual ppi of the browser.
-#' @param alt Alternate text for the HTML `<img>` tag if it cannot be displayed
-#'   or viewed (i.e., the user uses a screen reader). In addition to a character
-#'   string, the value may be a reactive expression (or a function referencing
-#'   reactive values) that returns a character string. If the value is `NA` (the
-#'   default), then `ggplot2::get_alt_text()` is used to extract alt text from
-#'   ggplot objects; for other plots, `NA` results in alt text of "Plot object".
-#'   `NULL` or `""` is not recommended because those should be limited to
-#'   decorative images.
-#' @param ... Arguments to be passed through to [plotPNG()].
+#' @param ... Arguments to be passed through to [grDevices::png()].
 #'   These can be used to set the width, height, background color, etc.
-#' @inheritParams renderUI
+#' @param env The environment in which to evaluate `expr`.
+#' @param quoted Is `expr` a quoted expression (with `quote()`)? This
+#'   is useful if you want to save an expression in a variable.
 #' @param execOnResize If `FALSE` (the default), then when a plot is
 #'   resized, Shiny will *replay* the plot drawing commands with
 #'   [grDevices::replayPlot()] instead of re-executing `expr`.
@@ -57,19 +47,13 @@
 #'   call to [plotOutput()] when `renderPlot` is used in an
 #'   interactive R Markdown document.
 #' @export
-renderPlot <- function(expr, width = 'auto', height = 'auto', res = 72, ...,
-                       alt = NA,
-                       env = parent.frame(), quoted = FALSE,
-                       execOnResize = FALSE, outputArgs = list()
+renderPlot <- function(expr, width='auto', height='auto', res=72, ...,
+                       env=parent.frame(), quoted=FALSE,
+                       execOnResize=FALSE, outputArgs=list()
 ) {
-
-  func <- installExprFunction(
-    expr, "func", env, quoted,
-    label = "renderPlot",
-    # This ..stacktraceon is matched by a ..stacktraceoff.. when plotFunc
-    # is called
-    ..stacktraceon = TRUE
-  )
+  # This ..stacktraceon is matched by a ..stacktraceoff.. when plotFunc
+  # is called
+  installExprFunction(expr, "func", env, quoted, ..stacktraceon = TRUE)
 
   args <- list(...)
 
@@ -87,16 +71,7 @@ renderPlot <- function(expr, width = 'auto', height = 'auto', res = 72, ...,
   else
     heightWrapper <- function() { height }
 
-  if (is.reactive(alt))
-    altWrapper <- alt
-  else if (is.function(alt))
-    altWrapper <- reactive({ alt() })
-  else
-    altWrapper <- function() { alt }
-
-  # This is the function that will be used as getDims by default, but it can be
-  # overridden (which happens when bindCache() is used).
-  getDimsDefault <- function() {
+  getDims <- function() {
     width <- widthWrapper()
     height <- heightWrapper()
 
@@ -115,7 +90,6 @@ renderPlot <- function(expr, width = 'auto', height = 'auto', res = 72, ...,
   # the plotObj() reactive.
   session <- NULL
   outputName <- NULL
-  getDims <- NULL
 
   # Calls drawPlot, invoking the user-provided `func` (which may or may not
   # return a promise). The idea is that the (cached) return value from this
@@ -126,7 +100,7 @@ renderPlot <- function(expr, width = 'auto', height = 'auto', res = 72, ...,
       {
         # If !execOnResize, don't invalidate when width/height changes.
         dims <- if (execOnResize) getDims() else isolate(getDims())
-        pixelratio <- session$clientData$pixelratio %||% 1
+        pixelratio <- session$clientData$pixelratio %OR% 1
         do.call("drawPlot", c(
           list(
             name = outputName,
@@ -134,7 +108,6 @@ renderPlot <- function(expr, width = 'auto', height = 'auto', res = 72, ...,
             func = func,
             width = dims$width,
             height = dims$height,
-            alt = altWrapper(),
             pixelratio = pixelratio,
             res = res
           ), args))
@@ -153,21 +126,17 @@ renderPlot <- function(expr, width = 'auto', height = 'auto', res = 72, ...,
 
   # This function is the one that's returned from renderPlot(), and gets
   # wrapped in an observer when the output value is assigned.
-  # The `get_dims` parameter defaults to `getDimsDefault`. However, it can be
-  # overridden, so that `bindCache` can use a different version.
-  renderFunc <- function(shinysession, name, ..., get_dims = getDimsDefault) {
-
+  renderFunc <- function(shinysession, name, ...) {
     outputName <<- name
     session <<- shinysession
-    if (is.null(getDims)) getDims <<- get_dims
 
     hybrid_chain(
       drawReactive(),
       function(result) {
         dims <- getDims()
-        pixelratio <- session$clientData$pixelratio %||% 1
+        pixelratio <- session$clientData$pixelratio %OR% 1
         result <- do.call("resizeSavedPlot", c(
-          list(name, shinysession, result, dims$width, dims$height, altWrapper(), pixelratio, res),
+          list(name, shinysession, result, dims$width, dims$height, pixelratio, res),
           args
         ))
 
@@ -183,25 +152,13 @@ renderPlot <- function(expr, width = 'auto', height = 'auto', res = 72, ...,
   outputFunc <- plotOutput
   if (!identical(height, 'auto')) formals(outputFunc)['height'] <- list(NULL)
 
-  markedFunc <- markRenderFunction(
-    outputFunc,
-    renderFunc,
-    outputArgs,
-    cacheHint = list(userExpr = installedFuncExpr(func), res = res)
-  )
-  class(markedFunc) <- c("shiny.renderPlot", class(markedFunc))
-  markedFunc
+  markRenderFunction(outputFunc, renderFunc, outputArgs = outputArgs)
 }
 
-resizeSavedPlot <- function(name, session, result, width, height, alt, pixelratio, res, ...) {
-  if (isTRUE(result$img$width == width && result$img$height == height &&
-      result$pixelratio == pixelratio && result$res == res)) {
+resizeSavedPlot <- function(name, session, result, width, height, pixelratio, res, ...) {
+  if (result$img$width == width && result$img$height == height &&
+      result$pixelratio == pixelratio && result$res == res) {
     return(result)
-  }
-
-  if (isNamespaceLoaded("showtext")) {
-    showtextOpts <- showtext::showtext_opts(dpi = res*pixelratio)
-    on.exit({showtext::showtext_opts(showtextOpts)}, add = TRUE)
   }
 
   coordmap <- NULL
@@ -215,7 +172,6 @@ resizeSavedPlot <- function(name, session, result, width, height, alt, pixelrati
     src = session$fileUrl(name, outfile, contentType = "image/png"),
     width = width,
     height = height,
-    alt = result$alt,
     coordmap = coordmap,
     error = attr(coordmap, "error", exact = TRUE)
   )
@@ -223,7 +179,7 @@ resizeSavedPlot <- function(name, session, result, width, height, alt, pixelrati
   result
 }
 
-drawPlot <- function(name, session, func, width, height, alt, pixelratio, res, ...) {
+drawPlot <- function(name, session, func, width, height, pixelratio, res, ...) {
   #  1. Start PNG
   #  2. Enable displaylist recording
   #  3. Call user-defined func
@@ -240,25 +196,13 @@ drawPlot <- function(name, session, func, width, height, alt, pixelratio, res, .
   domain <- createGraphicsDevicePromiseDomain(device)
   grDevices::dev.control(displaylist = "enable")
 
-  # In some cases (at least when `png(type='cairo')), showtext's font
-  # rendering needs to know about the device's resolution to work properly.
-  # I don't see any immediate harm in setting the dpi option for any device,
-  # but it's worth noting that the option doesn't currently work with CairoPNG.
-  # https://github.com/yixuan/showtext/issues/33
-  showtextOpts <- if (isNamespaceLoaded("showtext")) {
-    showtext::showtext_opts(dpi = res*pixelratio)
-  } else {
-    NULL
-  }
-
   hybrid_chain(
     hybrid_chain(
       promises::with_promise_domain(domain, {
         hybrid_chain(
           func(),
-          function(value) {
-            res <- withVisible(value)
-            if (res$visible) {
+          function(value, .visible) {
+            if (.visible) {
               # A modified version of print.ggplot which returns the built ggplot object
               # as well as the gtable grob. This overrides the ggplot::print.ggplot
               # method, but only within the context of renderPlot. The reason this needs
@@ -276,7 +220,7 @@ drawPlot <- function(name, session, func, width, height, alt, pixelratio, res, .
                 # similar to ggplot2. But for base graphics, it would already have
                 # been rendered when func was called above, and the print should
                 # have no effect.
-                result <- ..stacktraceon..(print(res$value))
+                result <- ..stacktraceon..(print(value))
                 # TODO jcheng 2017-04-11: Verify above ..stacktraceon..
               })
               result
@@ -291,7 +235,6 @@ drawPlot <- function(name, session, func, width, height, alt, pixelratio, res, .
               recordedPlot = grDevices::recordPlot(),
               coordmap = getCoordmap(value, width*pixelratio, height*pixelratio, res*pixelratio),
               pixelratio = pixelratio,
-              alt = if (anyNA(alt)) getAltText(value) else alt,
               res = res
             )
           }
@@ -299,17 +242,13 @@ drawPlot <- function(name, session, func, width, height, alt, pixelratio, res, .
       }),
       finally = function() {
         grDevices::dev.off(device)
-        if (length(showtextOpts)) {
-          showtext::showtext_opts(showtextOpts)
-        }
       }
     ),
     function(result) {
       result$img <- dropNulls(list(
-        src = session$fileUrl(name, outfile, contentType = 'image/png'),
+        src = session$fileUrl(name, outfile, contentType='image/png'),
         width = width,
         height = height,
-        alt = result$alt,
         coordmap = result$coordmap,
         # Get coordmap error message if present
         error = attr(result$coordmap, "error", exact = TRUE)
@@ -341,24 +280,6 @@ custom_print.ggplot <- function(x) {
     build = build,
     gtable = gtable
   ), class = "ggplot_build_gtable")
-}
-
-# Infer alt text description from renderPlot() value
-# (currently just ggplot2 is supported)
-getAltText <- function(x, default = "Plot object") {
-  # Since, inside renderPlot(), custom_print.ggplot()
-  # overrides print.ggplot, this class indicates a ggplot()
-  if (!inherits(x, "ggplot_build_gtable")) {
-    return(default)
-  }
-  # ggplot2::get_alt_text() was added in v3.3.4
-  # https://github.com/tidyverse/ggplot2/pull/4482
-  get_alt <- getNamespace("ggplot2")$get_alt_text
-  if (!is.function(get_alt)) {
-    return(default)
-  }
-  alt <- paste(get_alt(x$build), collapse = " ")
-  if (nzchar(alt)) alt else default
 }
 
 # The coordmap extraction functions below return something like the examples
@@ -612,7 +533,7 @@ getGgplotCoordmap <- function(p, width, height, res) {
 find_panel_info <- function(b) {
   # Structure of ggplot objects changed after 2.1.0. After 2.2.1, there was a
   # an API for extracting the necessary information.
-  ggplot_ver <- get_package_version("ggplot2")
+  ggplot_ver <- utils::packageVersion("ggplot2")
 
   if (ggplot_ver > "2.2.1") {
     find_panel_info_api(b)
@@ -632,10 +553,6 @@ find_panel_info_api <- function(b) {
   coord  <- ggplot2::summarise_coord(b)
   layers <- ggplot2::summarise_layers(b)
 
-  `%NA_OR%` <- function(x, y) {
-    if (is_na(x)) y else x
-  }
-
   # Given x and y scale objects and a coord object, return a list that has
   # the bases of log transformations for x and y, or NULL if it's not a
   # log transform.
@@ -652,8 +569,8 @@ find_panel_info_api <- function(b) {
 
     # First look for log base in scale, then coord; otherwise NULL.
     list(
-      x = get_log_base(xscale$trans) %NA_OR% coord$xlog %NA_OR% NULL,
-      y = get_log_base(yscale$trans) %NA_OR% coord$ylog %NA_OR% NULL
+      x = get_log_base(xscale$trans) %OR% coord$xlog %OR% NULL,
+      y = get_log_base(yscale$trans) %OR% coord$ylog %OR% NULL
     )
   }
 
@@ -968,14 +885,6 @@ find_panel_info_non_api <- function(b, ggplot_format) {
   })
 }
 
-# Use public API for getting the unit's type (grid::unitType(), added in R 4.0)
-# https://github.com/wch/r-source/blob/f9b8a42/src/library/grid/R/unit.R#L179
-getUnitType <- function(u) {
-  tryCatch(
-    get("unitType", envir = asNamespace("grid"))(u),
-    error = function(e) attr(u, "unit", exact = TRUE)
-  )
-}
 
 # Given a gtable object, return the x and y ranges (in pixel dimensions)
 find_panel_ranges <- function(g, res) {
@@ -991,11 +900,11 @@ find_panel_ranges <- function(g, res) {
     if (inherits(x, "unit.list")) {
       # For ggplot2 <= 1.0.1
       vapply(x, FUN.VALUE = logical(1), function(u) {
-        isTRUE(getUnitType(u) == "null")
+        isTRUE(attr(u, "unit", exact = TRUE) == "null")
       })
     } else {
       # For later versions of ggplot2
-      getUnitType(x) == "null"
+      attr(x, "unit", exact = TRUE) == "null"
     }
   }
 
@@ -1035,11 +944,7 @@ find_panel_ranges <- function(g, res) {
 
     # The plotting panels all are 'null' units.
     null_sizes <- rep(NA_real_, length(rel_sizes))
-    # Workaround for `[.unit` forbidding zero-length subsets
-    # https://github.com/wch/r-source/blob/f9b8a42/src/library/grid/R/unit.R#L448-L450
-    if (length(null_idx)) {
-      null_sizes[null_idx] <- as.numeric(rel_sizes[null_idx])
-    }
+    null_sizes[null_idx] <- as.numeric(rel_sizes[null_idx])
 
     # Total size allocated for panels is the total image size minus absolute
     # (non-panel) elements.

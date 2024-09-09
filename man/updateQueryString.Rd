@@ -4,16 +4,13 @@
 \alias{updateQueryString}
 \title{Update URL in browser's location bar}
 \usage{
-updateQueryString(
-  queryString,
-  mode = c("replace", "push"),
-  session = getDefaultReactiveDomain()
-)
+updateQueryString(queryString, mode = c("replace", "push"),
+  session = getDefaultReactiveDomain())
 }
 \arguments{
 \item{queryString}{The new query string to show in the location bar.}
 
-\item{mode}{When the query string is updated, should the current history
+\item{mode}{When the query string is updated, should the the current history
 entry be replaced (default), or should a new history entry be pushed onto
 the history stack? The former should only be used in a live bookmarking
 context. The latter is useful if you want to navigate between states using
@@ -30,13 +27,13 @@ Internet Explorer 9 and below.
 For \code{mode = "push"}, only three updates are currently allowed:
 \enumerate{
 \item the query string (format: \code{?param1=val1&param2=val2})
-\item the hash (format: \verb{#hash})
+\item the hash (format: \code{#hash})
 \item both the query string and the hash
 (format: \code{?param1=val1&param2=val2#hash})
 }
 
 In other words, if \code{mode = "push"}, the \code{queryString} must start
-with either \verb{?} or with \verb{#}.
+with either \code{?} or with \code{#}.
 
 A technical curiosity: under the hood, this function is calling the HTML5
 history API (which is where the names for the \code{mode} argument come from).
@@ -93,7 +90,7 @@ if (interactive()) {
         query <- getQueryString()
         queryText <- paste(names(query), query,
                        sep = "=", collapse=", ")
-        paste("Your query string is:\n", queryText)
+        paste("Your query string is:\\n", queryText)
       })
     }
   )

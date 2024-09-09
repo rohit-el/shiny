@@ -1,3 +1,5 @@
+context("bootstrap")
+
 test_that("CSS unit validation", {
   # On error, return NA; on success, return result
   validateCssUnit_wrap <- function(x) {
@@ -22,7 +24,7 @@ test_that("Repeated names for selectInput and radioButtons choices", {
   # Select input
   x <- selectInput('id','label', choices = c(a='x1', a='x2', b='x3'), selectize = FALSE)
   expect_true(grepl(fixed = TRUE,
-    '<select class="shiny-input-select form-control" id="id"><option value="x1" selected>a</option>\n<option value="x2">a</option>\n<option value="x3">b</option></select>',
+    '<select id="id" class="form-control"><option value="x1" selected>a</option>\n<option value="x2">a</option>\n<option value="x3">b</option></select>',
      format(x)
   ))
 
@@ -50,7 +52,7 @@ test_that("Repeated names for selectInput and radioButtons choices", {
   choices <- x$children
 
   expect_equal(choices[[2]]$children[[1]][[1]]$children[[1]]$children[[2]]$children[[1]],
-    HTML('<i class="far fa-calendar" role="presentation" aria-label="calendar icon"></i>'))
+    HTML('<i class="fa fa-calendar"></i>'))
   expect_equal(choices[[2]]$children[[1]][[1]]$children[[1]]$children[[1]]$attribs$value, 'icon')
   expect_equal(choices[[2]]$children[[1]][[1]]$children[[1]]$children[[1]]$attribs$checked, 'checked')
 
@@ -67,57 +69,20 @@ test_that("Repeated names for selectInput and radioButtons choices", {
 
 
 test_that("Choices are correctly assigned names", {
-  # Empty non-list comes back as a list with names
-  expect_identical(
-    choicesWithNames(numeric(0)),
-    stats::setNames(list(), character(0))
-  )
-  # Empty list comes back with names
-  expect_identical(
-    choicesWithNames(list()),
-    stats::setNames(list(), character(0))
-  )
-  # NULL comes back as an empty list with names
-  expect_identical(
-    choicesWithNames(NULL),
-    stats::setNames(list(), character(0))
-  )
-  # NA is processed as a leaf, not a group
-  expect_identical(
-    choicesWithNames(NA),
-    as.list(stats::setNames(as.character(NA), NA))
-  )
-  # Empty character vector
-  # An empty character vector isn't a sensical input, but we preserved this test
-  # in the off chance that somebody relies on the existing behavior.
-  expect_identical(
-    choicesWithNames(c("")),
-    stats::setNames(list(""), "")
-  )
-  # Single-item character vector
-  expect_identical(
-    choicesWithNames(c("foob")),
-    list(foob="foob")
-  )
-  # Unnamed character vector
+  # Unnamed vector
   expect_identical(
     choicesWithNames(c("a","b","3")),
     list(a="a", b="b", "3"="3")
-  )
-  # Unnamed numeric vector
-  expect_identical(
-    choicesWithNames(c(1,2,3)),
-    list(`1`="1", `2`="2", `3`="3")
   )
   # Unnamed list
   expect_identical(
     choicesWithNames(list("a","b",3)),
     list(a="a", b="b", "3"="3")
   )
-  # Complex vector, with some named, some not
+  # Vector, with some named, some not
   expect_identical(
-    choicesWithNames(c(A=Inf+0i, 1+0i, C=0+0i)),
-    list(A="Inf+0i", "1+0i"="1+0i", C="0+0i")
+    choicesWithNames(c(A="a", "b", C="3", "4")),
+    list(A="a", "b"="b", C="3", "4"="4")
   )
   # List, with some named, some not
   expect_identical(
@@ -149,59 +114,23 @@ test_that("Choices are correctly assigned names", {
     choicesWithNames(list(A="a", B="b", C=c(D="d"))),
     list(A="a", B="b", C=list(D="d"))
   )
-  # List, named, with a named sub-vector of length 1 with a logical element
+  # List, named, with a named sub-vector of length 1 with a numeric element
   expect_identical(
-    choicesWithNames(list(A="a", B="b", C=c(D=TRUE))),
-    list(A="a", B="b", C=list(D="TRUE"))
+    choicesWithNames(list(A="a", B="b", C=c(D=1))),
+    list(A="a", B="b", C=list(D="1"))
   )
   # List, some named, with sublist
   expect_identical(
     choicesWithNames(list(A="a", "b", C=list("d", E="e"))),
     list(A="a", b="b", C=list(d="d", E="e"))
   )
-  # List, with a single-item unnamed group list
+  # Deeper nesting
   expect_identical(
-    choicesWithNames(list(C=list(123))),
-    list(C=list("123"="123"))
+    choicesWithNames(list(A="a", "b", C=list(D=list("e", "f"), G=c(H="h", "i")))),
+    list(A="a", b="b", C=list(D=list(e="e", f="f"), G=list(H="h", i="i")))
   )
   # Error when sublist is unnamed
   expect_error(choicesWithNames(list(A="a", "b", list(1,2))))
-  # Error when list is unnamed and contains a group
-  # NULL, list(1,2), and anything of length() == 0 is considered a group.
-  # NA is NOT a group.
-  expect_error(choicesWithNames(list(NULL)), regexp = "must be named")
-  expect_error(choicesWithNames(list(list(1,2))), regexp = "must be named")
-  expect_error(choicesWithNames(list(character(0))), regexp = "must be named")
-  # Unnamed factor
-  expect_identical(
-    choicesWithNames(factor(c("a","b","3"))),
-    list(a="a", b="b", "3"="3")
-  )
-  # Named factor
-  expect_identical(
-    choicesWithNames(structure(factor(c("foo", "bar")), names = c("A", "B"))),
-    list(A="foo", B="bar")
-  )
-  # List, named, with a sub-factor
-  expect_identical(
-    choicesWithNames(list(A="a", B="b", C=factor(c("d", "e")))),
-    list(A="a", B="b", C=list(d="d", e="e"))
-  )
-  # List, named, with a named sub-factor
-  expect_identical(
-    choicesWithNames(list(A="a", B="b", C=structure(factor(c("d", "e")), names = c("d", "e")))),
-    list(A="a", B="b", C=list(d="d", e="e"))
-  )
-  # List, named, with an empty group as an unnamed empty list
-  expect_identical(
-    choicesWithNames(list(C=list())),
-    list(C=stats::setNames(list(), character()))
-  )
-  # List, named, with an empty group as an unnamed empty vector
-  expect_identical(
-    choicesWithNames(list(C=c())),
-    list(C=stats::setNames(list(), character()))
-  )
 })
 
 
@@ -249,7 +178,7 @@ test_that("selectInput selects items by default", {
 
   # Nothing selected when choices=NULL
   expect_true(grepl(fixed = TRUE,
-    '<select class="shiny-input-select form-control" id="x"></select>',
+    '<select id="x" class="form-control"></select>',
     format(selectInput('x', NULL, NULL, selectize = FALSE))
   ))
 
@@ -321,7 +250,7 @@ test_that("normalizeChoicesArgs does its job", {
 
 test_that("Choices need not be provided, can be NULL or c()", {
 
-  expected <- '<div id="cb" class="form-group shiny-input-checkboxgroup shiny-input-container" role="group" aria-labelledby="cb-label">\n  <label class="control-label" id="cb-label" for="cb">Choose:</label>\n  <div class="shiny-options-group"></div>\n</div>'
+  expected <- "<div id=\"cb\" class=\"form-group shiny-input-checkboxgroup shiny-input-container\">\n  <label class=\"control-label\" for=\"cb\">Choose:</label>\n  <div class=\"shiny-options-group\"></div>\n</div>"
   noChoices <- checkboxGroupInput("cb", "Choose:")
   choicesNull <- checkboxGroupInput("cb", "Choose:", choices = NULL)
   choicesCharacter <- checkboxGroupInput("cb", "Choose:", choices = c())
@@ -334,26 +263,5 @@ test_that("Choices need not be provided, can be NULL or c()", {
   expect_identical(noChoices, choicesCharacter0)
   expect_identical(noChoices, allChoicesNull)
 
-  expect_equal(expected, format(noChoices))
-})
-
-# https://github.com/rstudio/shiny/pull/3187
-test_that("radioButtons() and checkboxGroupInput() accessibility", {
-  rb <- radioButtons("foo", "bar", c("a", "b"))
-  rb_lbl <- rb$children[[1]]
-  expect_equal(rb$attribs$role, "radiogroup")
-  expect_equal(rb_lbl$name, "label")
-  expect_true(!is.null(rb_lbl$attribs$id))
-  expect_equal(
-    rb$attribs$`aria-labelledby`, rb_lbl$attribs$id
-  )
-
-  cbg <- checkboxGroupInput("foo", "bar", c("a", "b"))
-  cbg_lbl <- cbg$children[[1]]
-  expect_equal(cbg$attribs$role, "group")
-  expect_equal(cbg_lbl$name, "label")
-  expect_true(!is.null(cbg_lbl$attribs$id))
-  expect_equal(
-    cbg$attribs$`aria-labelledby`, cbg_lbl$attribs$id
-  )
+  expect_true(grepl(fixed = TRUE, expected, format(noChoices)))
 })

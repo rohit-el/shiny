@@ -11,9 +11,13 @@
 #' @param ... Elements to include within the page
 #' @param title The browser window title (defaults to the host URL of the page).
 #'   Can also be set as a side effect of the [titlePanel()] function.
-#' @inheritParams bootstrapPage
+#' @param responsive This option is deprecated; it is no longer optional with
+#'   Bootstrap 3.
+#' @param theme Alternative Bootstrap stylesheet (normally a css file within the
+#'   www directory). For example, to use the theme located at
+#'   `www/bootstrap.css` you would use `theme = "bootstrap.css"`.
 #'
-#' @return A UI definition that can be passed to the [shinyUI] function.
+#' @return A UI defintion that can be passed to the [shinyUI] function.
 #'
 #' @details To create a fluid page use the `fluidPage` function and include
 #'   instances of `fluidRow` and [column()] within it. As an
@@ -21,11 +25,10 @@
 #'   higher-level layout functions like [sidebarLayout()].
 #'
 #' @note See the [
-#'   Shiny-Application-Layout-Guide](https://shiny.rstudio.com/articles/layout-guide.html) for additional details on laying out fluid
+#'   Shiny-Application-Layout-Guide](http://shiny.rstudio.com/articles/layout-guide.html) for additional details on laying out fluid
 #'   pages.
 #'
-#' @family layout functions
-#' @seealso [column()]
+#' @seealso [column()], [sidebarLayout()]
 #'
 #' @examples
 #' ## Only run examples in interactive R sessions
@@ -83,11 +86,11 @@
 #' }
 #' @rdname fluidPage
 #' @export
-fluidPage <- function(..., title = NULL, theme = NULL, lang = NULL) {
+fluidPage <- function(..., title = NULL, responsive = NULL, theme = NULL) {
   bootstrapPage(div(class = "container-fluid", ...),
                 title = title,
-                theme = theme,
-                lang = lang)
+                responsive = responsive,
+                theme = theme)
 }
 
 
@@ -109,9 +112,13 @@ fluidRow <- function(...) {
 #'
 #' @param ... Elements to include within the container
 #' @param title The browser window title (defaults to the host URL of the page)
-#' @inheritParams bootstrapPage
+#' @param responsive This option is deprecated; it is no longer optional with
+#'   Bootstrap 3.
+#' @param theme Alternative Bootstrap stylesheet (normally a css file within the
+#'   www directory). For example, to use the theme located at
+#'   `www/bootstrap.css` you would use `theme = "bootstrap.css"`.
 #'
-#' @return A UI definition that can be passed to the [shinyUI] function.
+#' @return A UI defintion that can be passed to the [shinyUI] function.
 #'
 #' @details To create a fixed page use the `fixedPage` function and include
 #'   instances of `fixedRow` and [column()] within it. Note that
@@ -120,10 +127,8 @@ fluidRow <- function(...) {
 #'   with `fixedRow` and `column`.
 #'
 #' @note See the [
-#'   Shiny Application Layout Guide](https://shiny.rstudio.com/articles/layout-guide.html) for additional details on laying out fixed
+#'   Shiny Application Layout Guide](http://shiny.rstudio.com/articles/layout-guide.html) for additional details on laying out fixed
 #'   pages.
-#'
-#' @family layout functions
 #'
 #' @seealso [column()]
 #'
@@ -148,11 +153,11 @@ fluidRow <- function(...) {
 #'
 #' @rdname fixedPage
 #' @export
-fixedPage <- function(..., title = NULL, theme = NULL, lang = NULL) {
+fixedPage <- function(..., title = NULL, responsive = NULL, theme = NULL) {
   bootstrapPage(div(class = "container", ...),
                 title = title,
-                theme = theme,
-                lang = lang)
+                responsive = responsive,
+                theme = theme)
 }
 
 #' @rdname fixedPage
@@ -223,12 +228,8 @@ column <- function(width, ..., offset = 0) {
     stop("column width must be between 1 and 12")
 
   colClass <- paste0("col-sm-", width)
-  if (offset > 0) {
-    # offset-md-x is for bootstrap 4 forward compat
-    # (every size tier has been bumped up one level)
-    # https://github.com/twbs/bootstrap/blob/74b8fe7/docs/4.3/migration/index.html#L659
-    colClass <- paste0(colClass, " offset-md-", offset, " col-sm-offset-", offset)
-  }
+  if (offset > 0)
+    colClass <- paste0(colClass, " col-sm-offset-", offset)
   div(class = colClass, ...)
 }
 
@@ -241,6 +242,7 @@ column <- function(width, ..., offset = 0) {
 #' @details Calling this function has the side effect of including a
 #'   `title` tag within the head. You can also specify a page title
 #'   explicitly using the `title` parameter of the top-level page function.
+#'
 #'
 #' @examples
 #' ## Only run examples in interactive R sessions
@@ -261,23 +263,16 @@ titlePanel <- function(title, windowTitle=title) {
 
 #' Layout a sidebar and main area
 #'
-#' Create a layout (`sidebarLayout()`) with a sidebar (`sidebarPanel()`) and
-#' main area (`mainPanel()`). The sidebar is displayed with a distinct
-#' background color and typically contains input controls. The main
+#' Create a layout with a sidebar and main area. The sidebar is displayed with a
+#' distinct background color and typically contains input controls. The main
 #' area occupies 2/3 of the horizontal width and typically contains outputs.
 #'
-#' @param sidebarPanel The `sidebarPanel()` containing input controls.
-#' @param mainPanel The `mainPanel()` containing outputs.
+#' @param sidebarPanel The [sidebarPanel] containing input controls
+#' @param mainPanel The [mainPanel] containing outputs
 #' @param position The position of the sidebar relative to the main area ("left"
-#'   or "right").
+#'   or "right")
 #' @param fluid `TRUE` to use fluid layout; `FALSE` to use fixed
 #'   layout.
-#' @param width The width of the sidebar and main panel. By default, the
-#'   sidebar takes up 1/3 of the width, and the main panel 2/3. The total
-#'   width must be 12 or less.
-#' @param ... Output elements to include in the sidebar/main panel.
-#'
-#' @family layout functions
 #'
 #' @examples
 #' ## Only run examples in interactive R sessions
@@ -342,28 +337,6 @@ sidebarLayout <- function(sidebarPanel,
     fixedRow(firstPanel, secondPanel)
 }
 
-#' @export
-#' @rdname sidebarLayout
-sidebarPanel <- function(..., width = 4) {
-  div(class=paste0("col-sm-", width),
-    tags$form(class="well",
-      # A11y semantic landmark for sidebar
-      role="complementary",
-      ...
-    )
-  )
-}
-
-#' @export
-#' @rdname sidebarLayout
-mainPanel <- function(..., width = 8) {
-  div(class=paste0("col-sm-", width),
-    # A11y semantic landmark for main region
-    role="main",
-    ...
-  )
-}
-
 #' Lay out UI elements vertically
 #'
 #' Create a container that includes one or more rows of content (each element
@@ -373,7 +346,7 @@ mainPanel <- function(..., width = 8) {
 #' @param fluid `TRUE` to use fluid layout; `FALSE` to use fixed
 #'   layout.
 #'
-#' @family layout functions
+#' @seealso [fluidPage()], [flowLayout()]
 #'
 #' @examples
 #' ## Only run examples in interactive R sessions
@@ -390,7 +363,7 @@ mainPanel <- function(..., width = 8) {
 #' }
 #' @export
 verticalLayout <- function(..., fluid = TRUE) {
-  lapply(list2(...), function(row) {
+  lapply(list(...), function(row) {
     col <- column(12, row)
     if (fluid)
       fluidRow(col)
@@ -411,7 +384,7 @@ verticalLayout <- function(..., fluid = TRUE) {
 #' @param cellArgs Any additional attributes that should be used for each cell
 #'   of the layout.
 #'
-#' @family layout functions
+#' @seealso [verticalLayout()]
 #'
 #' @examples
 #' ## Only run examples in interactive R sessions
@@ -427,8 +400,8 @@ verticalLayout <- function(..., fluid = TRUE) {
 #' @export
 flowLayout <- function(..., cellArgs = list()) {
 
-  children <- list2(...)
-  childIdx <- !nzchar(names(children) %||% character(length(children)))
+  children <- list(...)
+  childIdx <- !nzchar(names(children) %OR% character(length(children)))
   attribs <- children[!childIdx]
   children <- children[childIdx]
 
@@ -466,8 +439,6 @@ inputPanel <- function(...) {
 #'   values as pixels.
 #' @param cellArgs Any additional attributes that should be used for each cell
 #'   of the layout.
-#'
-#' @family layout functions
 #'
 #' @examples
 #' ## Only run examples in interactive R sessions
@@ -510,13 +481,13 @@ inputPanel <- function(...) {
 #' @export
 splitLayout <- function(..., cellWidths = NULL, cellArgs = list()) {
 
-  children <- list2(...)
-  childIdx <- !nzchar(names(children) %||% character(length(children)))
+  children <- list(...)
+  childIdx <- !nzchar(names(children) %OR% character(length(children)))
   attribs <- children[!childIdx]
   children <- children[childIdx]
   count <- length(children)
 
-  if (length(cellWidths) == 0 || isTRUE(is.na(cellWidths))) {
+  if (length(cellWidths) == 0 || is.na(cellWidths)) {
     cellWidths <- sprintf("%.3f%%", 100 / count)
   }
   cellWidths <- rep(cellWidths, length.out = count)
@@ -566,7 +537,7 @@ splitLayout <- function(..., cellWidths = NULL, cellArgs = list()) {
 #' @param flex Determines how space should be distributed to the cells. Can be a
 #'   single value like `1` or `2` to evenly distribute the available
 #'   space; or use a vector of numbers to specify the proportions. For example,
-#'   `flex = c(2, 3)` would cause the space to be split 40%/60% between
+#'   `flex = c(2, 3)` would cause the space to be split 40\%/60\% between
 #'   two cells. NA values will cause the corresponding cell to be sized
 #'   according to its contents (without growing or shrinking).
 #' @param width,height The total amount of width and height to use for the
@@ -608,7 +579,7 @@ fillCol <- function(..., flex = 1, width = "100%", height = "100%") {
 }
 
 flexfill <- function(..., direction, flex, width = width, height = height) {
-  children <- list2(...)
+  children <- list(...)
   attrs <- list()
 
   if (!is.null(names(children))) {
@@ -688,4 +659,38 @@ flexfill <- function(..., direction, flex, width = width, height = height) {
     }, SIMPLIFY = FALSE, USE.NAMES = FALSE)
   )
   do.call(tags$div, c(attrs, divArgs))
+}
+
+css <- function(..., collapse_ = "") {
+  props <- list(...)
+  if (length(props) == 0) {
+    return("")
+  }
+
+  if (is.null(names(props)) || any(names(props) == "")) {
+    stop("cssList expects all arguments to be named")
+  }
+
+  # Necessary to make factors show up as level names, not numbers
+  props[] <- lapply(props, paste, collapse = " ")
+
+  # Drop null args
+  props <- props[!sapply(props, empty)]
+  if (length(props) == 0) {
+    return("")
+  }
+
+  # Replace all '.' and '_' in property names to '-'
+  names(props) <- gsub("[._]", "-", tolower(gsub("([A-Z])", "-\\1", names(props))))
+
+  # Create "!important" suffix for each property whose name ends with !, then
+  # remove the ! from the property name
+  important <- ifelse(grepl("!$", names(props), perl = TRUE), " !important", "")
+  names(props) <- sub("!$", "", names(props), perl = TRUE)
+
+  paste0(names(props), ":", props, important, ";", collapse = collapse_)
+}
+
+empty <- function(x) {
+  length(x) == 0 || (is.character(x) && !any(nzchar(x)))
 }

@@ -2,12 +2,10 @@
 % Please edit documentation in R/bootstrap.R
 \name{textOutput}
 \alias{textOutput}
-\alias{verbatimTextOutput}
 \title{Create a text output element}
 \usage{
-textOutput(outputId, container = if (inline) span else div, inline = FALSE)
-
-verbatimTextOutput(outputId, placeholder = FALSE)
+textOutput(outputId, container = if (inline) span else div,
+  inline = FALSE)
 }
 \arguments{
 \item{outputId}{output variable to read the value from}
@@ -16,36 +14,18 @@ verbatimTextOutput(outputId, placeholder = FALSE)
 
 \item{inline}{use an inline (\code{span()}) or block container (\code{div()})
 for the output}
-
-\item{placeholder}{if the output is empty or \code{NULL}, should an empty
-rectangle be displayed to serve as a placeholder? (does not affect
-behavior when the output is nonempty)}
 }
 \value{
-An output element for use in UI.
+A text output element that can be included in a panel
 }
 \description{
-Render a reactive output variable as text within an application page.
-\code{textOutput()} is usually paired with \code{\link[=renderText]{renderText()}} and puts regular text
-in \verb{<div>} or \verb{<span>}; \code{verbatimTextOutput()} is usually paired with
-\code{\link[=renderPrint]{renderPrint()}} and provides fixed-width text in a \verb{<pre>}.
+Render a reactive output variable as text within an application page. The
+text will be included within an HTML \code{div} tag by default.
 }
 \details{
-In both functions, text is HTML-escaped prior to rendering.
+Text is HTML-escaped prior to rendering. This element is often used
+to display \link{renderText} output variables.
 }
 \examples{
-## Only run this example in interactive R sessions
-if (interactive()) {
-  shinyApp(
-    ui = basicPage(
-      textInput("txt", "Enter the text to display below:"),
-      textOutput("text"),
-      verbatimTextOutput("verb")
-    ),
-    server = function(input, output) {
-      output$text <- renderText({ input$txt })
-      output$verb <- renderText({ input$txt })
-    }
-  )
-}
+h3(textOutput("caption"))
 }

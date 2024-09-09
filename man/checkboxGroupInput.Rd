@@ -4,16 +4,9 @@
 \alias{checkboxGroupInput}
 \title{Checkbox Group Input Control}
 \usage{
-checkboxGroupInput(
-  inputId,
-  label,
-  choices = NULL,
-  selected = NULL,
-  inline = FALSE,
-  width = NULL,
-  choiceNames = NULL,
-  choiceValues = NULL
-)
+checkboxGroupInput(inputId, label, choices = NULL, selected = NULL,
+  inline = FALSE, width = NULL, choiceNames = NULL,
+  choiceValues = NULL)
 }
 \arguments{
 \item{inputId}{The \code{input} slot that will be used to access the value.}
@@ -51,11 +44,6 @@ Create a group of checkboxes that can be used to toggle multiple choices
 independently. The server will receive the input as a character vector of the
 selected values.
 }
-\section{Server value}{
-
-Character vector of values corresponding to the boxes that are checked.
-}
-
 \examples{
 ## Only run examples in interactive R sessions
 if (interactive()) {
@@ -100,20 +88,13 @@ shinyApp(ui, server)
 \seealso{
 \code{\link[=checkboxInput]{checkboxInput()}}, \code{\link[=updateCheckboxGroupInput]{updateCheckboxGroupInput()}}
 
-Other input elements: 
-\code{\link{actionButton}()},
-\code{\link{checkboxInput}()},
-\code{\link{dateInput}()},
-\code{\link{dateRangeInput}()},
-\code{\link{fileInput}()},
-\code{\link{numericInput}()},
-\code{\link{passwordInput}()},
-\code{\link{radioButtons}()},
-\code{\link{selectInput}()},
-\code{\link{sliderInput}()},
-\code{\link{submitButton}()},
-\code{\link{textAreaInput}()},
-\code{\link{textInput}()},
-\code{\link{varSelectInput}()}
+Other input elements: \code{\link{actionButton}},
+  \code{\link{checkboxInput}}, \code{\link{dateInput}},
+  \code{\link{dateRangeInput}}, \code{\link{fileInput}},
+  \code{\link{numericInput}}, \code{\link{passwordInput}},
+  \code{\link{radioButtons}}, \code{\link{selectInput}},
+  \code{\link{sliderInput}}, \code{\link{submitButton}},
+  \code{\link{textAreaInput}}, \code{\link{textInput}},
+  \code{\link{varSelectInput}}
 }
 \concept{input elements}

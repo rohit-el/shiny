@@ -17,6 +17,6 @@
 #' can be cleared by using \code{selected=character(0)}.
 #'
 #' @param session The \code{session} object passed to function given to
-#'   \code{shinyServer}. Default is \code{getDefaultReactiveDomain()}.
+#'   \code{shinyServer}.
 #' @param inputId The id of the input object.
 #' @param label The label to set for the input object.

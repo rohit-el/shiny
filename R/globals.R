@@ -6,22 +6,18 @@
   # package itself, making our PRNG completely deterministic. This line resets
   # the private seed during load.
   withPrivateSeed(set.seed(NULL))
-
-  for (expr in on_load_exprs) {
-    eval(expr, envir = environment(.onLoad))
-  }
-
-  # Make sure these methods are available to knitr if shiny is loaded but not
-  # attached.
-  s3_register("knitr::knit_print", "reactive")
-  s3_register("knitr::knit_print", "shiny.appobj")
-  s3_register("knitr::knit_print", "shiny.render.function")
 }
 
-
-on_load_exprs <- list()
-# Register an expression to be evaluated when the package is loaded (in the
-# .onLoad function).
-on_load <- function(expr) {
-  on_load_exprs[[length(on_load_exprs) + 1]] <<- substitute(expr)
+.onAttach <- function(libname, pkgname) {
+  # Check for htmlwidgets version, if installed. As of Shiny 0.12.0 and
+  # htmlwidgets 0.4, both packages switched from RJSONIO to jsonlite. Because of
+  # this change, Shiny 0.12.0 will work only with htmlwidgets >= 0.4, and vice
+  # versa.
+  if (system.file(package = "htmlwidgets") != "" &&
+      utils::packageVersion("htmlwidgets") < "0.4") {
+    packageStartupMessage(
+      "This version of Shiny is designed to work with htmlwidgets >= 0.4. ",
+      "Please upgrade your version of htmlwidgets."
+    )
+  }
 }

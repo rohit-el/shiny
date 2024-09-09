@@ -4,7 +4,8 @@
 \alias{passwordInput}
 \title{Create a password input control}
 \usage{
-passwordInput(inputId, label, value = "", width = NULL, placeholder = NULL)
+passwordInput(inputId, label, value = "", width = NULL,
+  placeholder = NULL)
 }
 \arguments{
 \item{inputId}{The \code{input} slot that will be used to access the value.}
@@ -26,12 +27,6 @@ A text input control that can be added to a UI definition.
 \description{
 Create an password control for entry of passwords.
 }
-\section{Server value}{
-
-A character string of the password input. The default value is \code{""}
-unless \code{value} is provided.
-}
-
 \examples{
 ## Only run examples in interactive R sessions
 if (interactive()) {
@@ -53,20 +48,13 @@ shinyApp(ui, server)
 \seealso{
 \code{\link[=updateTextInput]{updateTextInput()}}
 
-Other input elements: 
-\code{\link{actionButton}()},
-\code{\link{checkboxGroupInput}()},
-\code{\link{checkboxInput}()},
-\code{\link{dateInput}()},
-\code{\link{dateRangeInput}()},
-\code{\link{fileInput}()},
-\code{\link{numericInput}()},
-\code{\link{radioButtons}()},
-\code{\link{selectInput}()},
-\code{\link{sliderInput}()},
-\code{\link{submitButton}()},
-\code{\link{textAreaInput}()},
-\code{\link{textInput}()},
-\code{\link{varSelectInput}()}
+Other input elements: \code{\link{actionButton}},
+  \code{\link{checkboxGroupInput}},
+  \code{\link{checkboxInput}}, \code{\link{dateInput}},
+  \code{\link{dateRangeInput}}, \code{\link{fileInput}},
+  \code{\link{numericInput}}, \code{\link{radioButtons}},
+  \code{\link{selectInput}}, \code{\link{sliderInput}},
+  \code{\link{submitButton}}, \code{\link{textAreaInput}},
+  \code{\link{textInput}}, \code{\link{varSelectInput}}
 }
 \concept{input elements}

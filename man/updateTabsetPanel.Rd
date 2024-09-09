@@ -6,34 +6,20 @@
 \alias{updateNavlistPanel}
 \title{Change the selected tab on the client}
 \usage{
-updateTabsetPanel(
-  session = getDefaultReactiveDomain(),
-  inputId,
-  selected = NULL
-)
+updateTabsetPanel(session, inputId, selected = NULL)
 
-updateNavbarPage(
-  session = getDefaultReactiveDomain(),
-  inputId,
-  selected = NULL
-)
+updateNavbarPage(session, inputId, selected = NULL)
 
-updateNavlistPanel(
-  session = getDefaultReactiveDomain(),
-  inputId,
-  selected = NULL
-)
+updateNavlistPanel(session, inputId, selected = NULL)
 }
 \arguments{
 \item{session}{The \code{session} object passed to function given to
-\code{shinyServer}. Default is \code{getDefaultReactiveDomain()}.}
+\code{shinyServer}.}
 
 \item{inputId}{The id of the \code{tabsetPanel}, \code{navlistPanel},
 or \code{navbarPage} object.}
 
-\item{selected}{The \code{value} (or, if none was supplied, the \code{title})
-of the tab that should be selected by default. If \code{NULL}, the first
-tab will be selected.}
+\item{selected}{The name of the tab to make active.}
 }
 \description{
 Change the selected tab on the client

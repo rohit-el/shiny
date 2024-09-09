@@ -4,65 +4,36 @@
 \alias{renderPlot}
 \title{Plot Output}
 \usage{
-renderPlot(
-  expr,
-  width = "auto",
-  height = "auto",
-  res = 72,
-  ...,
-  alt = NA,
-  env = parent.frame(),
-  quoted = FALSE,
-  execOnResize = FALSE,
-  outputArgs = list()
-)
+renderPlot(expr, width = "auto", height = "auto", res = 72, ...,
+  env = parent.frame(), quoted = FALSE, execOnResize = FALSE,
+  outputArgs = list())
 }
 \arguments{
 \item{expr}{An expression that generates a plot.}
 
-\item{width, height}{Height and width can be specified in three ways:
-\itemize{
-\item \code{"auto"}, the default, uses the size specified by \code{\link[=plotOutput]{plotOutput()}}
-(i.e. the \code{offsetWidth}/`offsetHeight`` of the HTML element bound to
-this plot.)
-\item An integer, defining the width/height in pixels.
-\item A function that returns the width/height in pixels (or \code{"auto"}).
-The function is executed in a reactive context so that you can refer to
-reactive values and expression to make the width/height reactive.
-}
-
-When rendering an inline plot, you must provide numeric values (in pixels)
-to both \code{width} and \code{height}.}
+\item{width, height}{The width/height of the rendered plot, in pixels; or
+\code{'auto'} to use the \code{offsetWidth}/\code{offsetHeight} of the HTML
+element that is bound to this plot. You can also pass in a function that
+returns the width/height in pixels or \code{'auto'}; in the body of the
+function you may reference reactive values and functions. When rendering an
+inline plot, you must provide numeric values (in pixels) to both
+\code{width} and \code{height}.}
 
 \item{res}{Resolution of resulting plot, in pixels per inch. This value is
-passed to \code{\link[=plotPNG]{plotPNG()}}. Note that this affects the resolution of PNG
+passed to \code{\link[grDevices:png]{grDevices::png()}}. Note that this affects the resolution of PNG
 rendering in R; it won't change the actual ppi of the browser.}
 
-\item{...}{Arguments to be passed through to \code{\link[=plotPNG]{plotPNG()}}.
+\item{...}{Arguments to be passed through to \code{\link[grDevices:png]{grDevices::png()}}.
 These can be used to set the width, height, background color, etc.}
 
-\item{alt}{Alternate text for the HTML \verb{<img>} tag if it cannot be displayed
-or viewed (i.e., the user uses a screen reader). In addition to a character
-string, the value may be a reactive expression (or a function referencing
-reactive values) that returns a character string. If the value is \code{NA} (the
-default), then \code{ggplot2::get_alt_text()} is used to extract alt text from
-ggplot objects; for other plots, \code{NA} results in alt text of "Plot object".
-\code{NULL} or \code{""} is not recommended because those should be limited to
-decorative images.}
+\item{env}{The environment in which to evaluate \code{expr}.}
 
-\item{env}{The parent environment for the reactive expression. By default,
-this is the calling environment, the same as when defining an ordinary
-non-reactive expression. If \code{expr} is a quosure and \code{quoted} is \code{TRUE},
-then \code{env} is ignored.}
-
-\item{quoted}{If it is \code{TRUE}, then the \code{\link[=quote]{quote()}}ed value of \code{expr}
-will be used when \code{expr} is evaluated. If \code{expr} is a quosure and you
-would like to use its expression as a value for \code{expr}, then you must set
-\code{quoted} to \code{TRUE}.}
+\item{quoted}{Is \code{expr} a quoted expression (with \code{quote()})? This
+is useful if you want to save an expression in a variable.}
 
 \item{execOnResize}{If \code{FALSE} (the default), then when a plot is
 resized, Shiny will \emph{replay} the plot drawing commands with
-\code{\link[grDevices:recordplot]{grDevices::replayPlot()}} instead of re-executing \code{expr}.
+\code{\link[grDevices:replayPlot]{grDevices::replayPlot()}} instead of re-executing \code{expr}.
 This can result in faster plot redrawing, but there may be rare cases where
 it is undesirable. If you encounter problems when resizing a plot, you can
 have Shiny re-execute the code on resize by setting this to \code{TRUE}.}

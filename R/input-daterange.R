@@ -70,10 +70,6 @@
 #'
 #' shinyApp(ui, server = function(input, output) { })
 #' }
-#'
-#' @section Server value:
-#' A [Date] vector of length 2.
-#'
 #' @export
 dateRangeInput <- function(inputId, label, start = NULL, end = NULL,
     min = NULL, max = NULL, format = "yyyy-mm-dd", startview = "month",
@@ -92,18 +88,14 @@ dateRangeInput <- function(inputId, label, start = NULL, end = NULL,
   attachDependencies(
     div(id = inputId,
       class = "shiny-date-range-input form-group shiny-input-container",
-      style = css(width = validateCssUnit(width)),
+      style = if (!is.null(width)) paste0("width: ", validateCssUnit(width), ";"),
 
       shinyInputLabel(inputId, label),
       # input-daterange class is needed for dropdown behavior
-      div(class = "input-daterange input-group input-group-sm",
+      div(class = "input-daterange input-group",
         tags$input(
-          class = "form-control",
+          class = "input-sm form-control",
           type = "text",
-          # `aria-labelledby` attribute is required for accessibility to avoid doubled labels (#2951).
-          `aria-labelledby` = paste0(inputId, "-label"),
-          # title attribute is announced for screen readers for date format.
-          title = paste("Date format:", format),
           `data-date-language` = language,
           `data-date-week-start` = weekstart,
           `data-date-format` = format,
@@ -113,19 +105,10 @@ dateRangeInput <- function(inputId, label, start = NULL, end = NULL,
           `data-initial-date` = start,
           `data-date-autoclose` = if (autoclose) "true" else "false"
         ),
-        # input-group-prepend and input-group-append are for bootstrap 4 forward compat
-        span(class = "input-group-addon input-group-prepend input-group-append",
-          span(class = "input-group-text",
-            separator
-          )
-        ),
+        span(class = "input-group-addon", separator),
         tags$input(
-          class = "form-control",
+          class = "input-sm form-control",
           type = "text",
-          # `aria-labelledby` attribute is required for accessibility to avoid doubled labels (#2951).
-          `aria-labelledby` = paste0(inputId, "-label"),
-          # title attribute is announced for screen readers for date format.
-          title = paste("Date format:", format),
           `data-date-language` = language,
           `data-date-week-start` = weekstart,
           `data-date-format` = format,
@@ -137,6 +120,6 @@ dateRangeInput <- function(inputId, label, start = NULL, end = NULL,
         )
       )
     ),
-    datePickerDependency()
+    datePickerDependency
   )
 }

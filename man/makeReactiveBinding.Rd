@@ -7,9 +7,10 @@
 makeReactiveBinding(symbol, env = parent.frame())
 }
 \arguments{
-\item{symbol}{Name of variable to make reactive, as a string.}
+\item{symbol}{A character string indicating the name of the variable that
+should be made reactive}
 
-\item{env}{Environment in which to create binding. Expert use only.}
+\item{env}{The environment that will contain the reactive variable}
 }
 \value{
 None.
@@ -21,17 +22,11 @@ already exist; if so, its value will be used as the initial value of the
 reactive variable (or \code{NULL} if the variable did not exist).
 }
 \examples{
-reactiveConsole(TRUE)
-
+\dontrun{
 a <- 10
 makeReactiveBinding("a")
-
 b <- reactive(a * -1)
 observe(print(b()))
-
 a <- 20
-a <- 30
-
-reactiveConsole(FALSE)
 }
-\keyword{internal}
+}

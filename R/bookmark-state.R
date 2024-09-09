@@ -1,3 +1,6 @@
+#' @include stack.R
+NULL
+
 ShinySaveState <- R6Class("ShinySaveState",
   public = list(
     input = NULL,
@@ -76,7 +79,7 @@ saveShinySaveState <- function(state) {
 
   # Look for a save.interface function. This will be defined by the hosting
   # environment if it supports bookmarking.
-  saveInterface <- getShinyOption("save.interface", default = NULL)
+  saveInterface <- getShinyOption("save.interface")
 
   if (is.null(saveInterface)) {
     if (inShinyServer()) {
@@ -214,22 +217,6 @@ RestoreContext <- R6Class("RestoreContext",
       self$dir <- NULL
     },
 
-    # Completely replace the state
-    set = function(active = FALSE, initErrorMessage = NULL, input = list(), values = list(), dir = NULL) {
-      # Validate all inputs
-      stopifnot(is.logical(active))
-      stopifnot(is.null(initErrorMessage) || is.character(initErrorMessage))
-      stopifnot(is.list(input))
-      stopifnot(is.list(values))
-      stopifnot(is.null(dir) || is.character(dir))
-
-      self$active <- active
-      self$initErrorMessage <- initErrorMessage
-      self$input <- RestoreInputSet$new(input)
-      self$values <- list2env2(values, parent = emptyenv())
-      self$dir <- dir
-    },
-
     # This should be called before a restore context is popped off the stack.
     flushPending = function() {
       self$input$flushPending()
@@ -293,7 +280,7 @@ RestoreContext <- R6Class("RestoreContext",
 
       # Look for a load.interface function. This will be defined by the hosting
       # environment if it supports bookmarking.
-      loadInterface <- getShinyOption("load.interface", default = NULL)
+      loadInterface <- getShinyOption("load.interface")
 
       if (is.null(loadInterface)) {
         if (inShinyServer()) {
@@ -308,8 +295,11 @@ RestoreContext <- R6Class("RestoreContext",
           loadInterface <- loadInterfaceLocal
         }
       }
-
-      loadInterface(id, loadFun)
+      if (length(parseQueryString(queryString)$run_id) == 0) {
+        loadInterface(id, loadFun)
+      } else {
+        loadInterface(id, loadFun, parseQueryString(queryString)$run_id)
+      }
 
       invisible()
     },
@@ -321,38 +311,34 @@ RestoreContext <- R6Class("RestoreContext",
       if (substr(queryString, 1, 1) == '?')
         queryString <- substr(queryString, 2, nchar(queryString))
 
-      # The "=" after "_inputs_" is optional. Shiny doesn't generate URLs with
-      # "=", but httr always adds "=".
-      inputs_reg <- "(^|&)_inputs_=?(&|$)"
-      values_reg <- "(^|&)_values_=?(&|$)"
 
       # Error if multiple '_inputs_' or '_values_'. This is needed because
       # strsplit won't add an entry if the search pattern is at the end of a
       # string.
-      if (length(gregexpr(inputs_reg, queryString)[[1]]) > 1)
+      if (length(gregexpr("(^|&)_inputs_(&|$)", queryString)[[1]]) > 1)
         stop("Invalid state string: more than one '_inputs_' found")
-      if (length(gregexpr(values_reg, queryString)[[1]]) > 1)
+      if (length(gregexpr("(^|&)_values_(&|$)", queryString)[[1]]) > 1)
         stop("Invalid state string: more than one '_values_' found")
 
       # Look for _inputs_ and store following content in inputStr
-      splitStr <- strsplit(queryString, inputs_reg)[[1]]
+      splitStr <- strsplit(queryString, "(^|&)_inputs_(&|$)")[[1]]
       if (length(splitStr) == 2) {
         inputStr <- splitStr[2]
         # Remove any _values_ (and content after _values_) that may come after
         # _inputs_
-        inputStr <- strsplit(inputStr, values_reg)[[1]][1]
+        inputStr <- strsplit(inputStr, "(^|&)_values_(&|$)")[[1]][1]
 
       } else {
         inputStr <- ""
       }
 
       # Look for _values_ and store following content in valueStr
-      splitStr <- strsplit(queryString, values_reg)[[1]]
+      splitStr <- strsplit(queryString, "(^|&)_values_(&|$)")[[1]]
       if (length(splitStr) == 2) {
         valueStr <- splitStr[2]
         # Remove any _inputs_ (and content after _inputs_) that may come after
         # _values_
-        valueStr <- strsplit(valueStr, inputs_reg)[[1]][1]
+        valueStr <- strsplit(valueStr, "(^|&)_inputs_(&|$)")[[1]][1]
 
       } else {
         valueStr <- ""
@@ -363,20 +349,16 @@ RestoreContext <- R6Class("RestoreContext",
       values <- parseQueryString(valueStr, nested = TRUE)
 
       valuesFromJSON <- function(vals) {
-        varsUnparsed <- c()
-        valsParsed <- mapply(names(vals), vals, SIMPLIFY = FALSE,
+        mapply(names(vals), vals, SIMPLIFY = FALSE,
           FUN = function(name, value) {
             tryCatch(
               safeFromJSON(value),
               error = function(e) {
-                varsUnparsed <<- c(varsUnparsed, name)
-                warning("Failed to parse URL parameter \"", name, "\"")
+                stop("Failed to parse URL parameter \"", name, "\"")
               }
             )
           }
         )
-        valsParsed[varsUnparsed] <- NULL
-        valsParsed
       }
 
       inputs <- valuesFromJSON(inputs)
@@ -452,10 +434,8 @@ RestoreInputSet <- R6Class("RestoreInputSet",
   )
 )
 
-restoreCtxStack <- NULL
-on_load({
-    restoreCtxStack <- fastmap::faststack()
-})
+
+restoreCtxStack <- Stack$new()
 
 withRestoreContext <- function(ctx, expr) {
   restoreCtxStack$push(ctx)
@@ -476,7 +456,7 @@ hasCurrentRestoreContext <- function() {
   domain <- getDefaultReactiveDomain()
   if (!is.null(domain) && !is.null(domain$restoreContext))
     return(TRUE)
-
+  
   return(FALSE)
 }
 
@@ -551,7 +531,7 @@ restoreInput <- function(id, default) {
 #' `window.history.pushState(null, null, queryString)`.
 #'
 #' @param queryString The new query string to show in the location bar.
-#' @param mode When the query string is updated, should the current history
+#' @param mode When the query string is updated, should the the current history
 #'   entry be replaced (default), or should a new history entry be pushed onto
 #'   the history stack? The former should only be used in a live bookmarking
 #'   context. The latter is useful if you want to navigate between states using
@@ -1167,10 +1147,10 @@ setBookmarkExclude <- function(names = character(0), session = getDefaultReactiv
 #'     toupper(input$text)
 #'   })
 #'   onBookmark(function(state) {
-#'     state$values$hash <- rlang::hash(input$text)
+#'     state$values$hash <- digest::digest(input$text, "md5")
 #'   })
 #'   onRestore(function(state) {
-#'     if (identical(rlang::hash(input$text), state$values$hash)) {
+#'     if (identical(digest::digest(input$text, "md5"), state$values$hash)) {
 #'       message("Module's input text matches hash ", state$values$hash)
 #'     } else {
 #'       message("Module's input text does not match hash ", state$values$hash)
@@ -1193,10 +1173,10 @@ setBookmarkExclude <- function(names = character(0), session = getDefaultReactiv
 #' server <- function(input, output, session) {
 #'   callModule(capitalizerServer, "tc")
 #'   onBookmark(function(state) {
-#'     state$values$hash <- rlang::hash(input$text)
+#'     state$values$hash <- digest::digest(input$text, "md5")
 #'   })
 #'   onRestore(function(state) {
-#'     if (identical(rlang::hash(input$text), state$values$hash)) {
+#'     if (identical(digest::digest(input$text, "md5"), state$values$hash)) {
 #'       message("App's input text matches hash ", state$values$hash)
 #'     } else {
 #'       message("App's input text does not match hash ", state$values$hash)

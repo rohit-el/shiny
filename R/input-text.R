@@ -28,11 +28,6 @@
 #' }
 #' shinyApp(ui, server)
 #' }
-#'
-#' @section Server value:
-#' A character string of the text input. The default value is `""`
-#' unless `value` is provided.
-#'
 #' @export
 textInput <- function(inputId, label, value = "", width = NULL,
   placeholder = NULL) {
@@ -40,9 +35,9 @@ textInput <- function(inputId, label, value = "", width = NULL,
   value <- restoreInput(id = inputId, default = value)
 
   div(class = "form-group shiny-input-container",
-    style = css(width = validateCssUnit(width)),
+    style = if (!is.null(width)) paste0("width: ", validateCssUnit(width), ";"),
     shinyInputLabel(inputId, label),
-    tags$input(id = inputId, type="text", class="shiny-input-text form-control", value=value,
+    tags$input(id = inputId, type="text", class="form-control", value=value,
       placeholder = placeholder)
   )
 }

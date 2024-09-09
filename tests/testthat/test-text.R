@@ -1,3 +1,5 @@
+context("text")
+
 test_that("renderPrint and renderText behavior is correct", {
   expect_equal(isolate(renderPrint({ "foo" })()),
                '[1] "foo"')

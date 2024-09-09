@@ -29,28 +29,19 @@ removeModal <- function(session = getDefaultReactiveDomain()) {
 
 #' Create a modal dialog UI
 #'
-#' @description
-#' `modalDialog()` creates the UI for a modal dialog, using Bootstrap's modal
-#' class. Modals are typically used for showing important messages, or for
-#' presenting UI that requires input from the user, such as a user name and
-#' password input.
+#' This creates the UI for a modal dialog, using Bootstrap's modal class. Modals
+#' are typically used for showing important messages, or for presenting UI that
+#' requires input from the user, such as a username and password input.
 #'
-#' `modalButton()` creates a button that will dismiss the dialog when clicked,
-#' typically used when customising the `footer`.
-#'
-#' @inheritParams actionButton
 #' @param ... UI elements for the body of the modal dialog box.
 #' @param title An optional title for the dialog.
 #' @param footer UI for footer. Use `NULL` for no footer.
 #' @param size One of `"s"` for small, `"m"` (the default) for medium,
-#'   `"l"` for large, or `"xl"` for extra large. Note that `"xl"` only 
-#'    works with Bootstrap 4 and above (to opt-in to Bootstrap 4+, 
-#'    pass [bslib::bs_theme()] to the `theme` argument of a page container 
-#'    like [fluidPage()]).
+#'   or `"l"` for large.
 #' @param easyClose If `TRUE`, the modal dialog can be dismissed by
 #'   clicking outside the dialog box, or be pressing the Escape key. If
 #'   `FALSE` (the default), the modal dialog can't be dismissed in those
-#'   ways; instead it must be dismissed by clicking on a `modalButton()`, or
+#'   ways; instead it must be dismissed by clicking on the dismiss button, or
 #'   from a call to [removeModal()] on the server.
 #' @param fade If `FALSE`, the modal dialog will have no fade-in animation
 #'   (it will simply appear rather than fade in to view).
@@ -154,25 +145,18 @@ removeModal <- function(session = getDefaultReactiveDomain()) {
 #' }
 #' @export
 modalDialog <- function(..., title = NULL, footer = modalButton("Dismiss"),
-  size = c("m", "s", "l", "xl"), easyClose = FALSE, fade = TRUE) {
+  size = c("m", "s", "l"), easyClose = FALSE, fade = TRUE) {
 
   size <- match.arg(size)
 
-  backdrop <- if (!easyClose) "static"
-  keyboard <- if (!easyClose) "false"
-  div(
-    id = "shiny-modal",
-    class = "modal",
-    class = if (fade) "fade",
-    tabindex = "-1",
-    `data-backdrop` = backdrop,
-    `data-bs-backdrop` = backdrop,
-    `data-keyboard` = keyboard,
-    `data-bs-keyboard` = keyboard,
+  cls <- if (fade) "modal fade" else "modal"
+  div(id = "shiny-modal", class = cls, tabindex = "-1",
+    `data-backdrop` = if (!easyClose) "static",
+    `data-keyboard` = if (!easyClose) "false",
 
     div(
       class = "modal-dialog",
-      class = switch(size, s = "modal-sm", m = NULL, l = "modal-lg", xl = "modal-xl"),
+      class = switch(size, s = "modal-sm", m = NULL, l = "modal-lg"),
       div(class = "modal-content",
         if (!is.null(title)) div(class = "modal-header",
           tags$h4(class = "modal-title", title)
@@ -181,26 +165,19 @@ modalDialog <- function(..., title = NULL, footer = modalButton("Dismiss"),
         if (!is.null(footer)) div(class = "modal-footer", footer)
       )
     ),
-    # jQuery plugin doesn't work in Bootstrap 5, but vanilla JS doesn't work in Bootstrap 4 :sob:
-    tags$script(HTML(
-      "if (window.bootstrap && !window.bootstrap.Modal.VERSION.match(/^4\\./)) {
-         var modal = new bootstrap.Modal(document.getElementById('shiny-modal'));
-         modal.show();
-      } else {
-         $('#shiny-modal').modal().focus();
-      }"
-    ))
+    tags$script("$('#shiny-modal').modal().focus();")
   )
 }
 
+#' Create a button for a modal dialog
+#'
+#' When clicked, a `modalButton` will dismiss the modal dialog.
+#'
+#' @inheritParams actionButton
+#' @seealso [modalDialog()] for examples.
 #' @export
-#' @rdname modalDialog
 modalButton <- function(label, icon = NULL) {
-  tags$button(
-    type = "button",
-    class = "btn btn-default",
-    `data-dismiss` = "modal",
-    `data-bs-dismiss` = "modal",
-    validateIcon(icon), label
+  tags$button(type = "button", class = "btn btn-default",
+    `data-dismiss` = "modal", validateIcon(icon), label
   )
 }

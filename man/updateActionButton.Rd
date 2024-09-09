@@ -2,36 +2,20 @@
 % Please edit documentation in R/update-input.R
 \name{updateActionButton}
 \alias{updateActionButton}
-\alias{updateActionLink}
 \title{Change the label or icon of an action button on the client}
 \usage{
-updateActionButton(
-  session = getDefaultReactiveDomain(),
-  inputId,
-  label = NULL,
-  icon = NULL,
-  disabled = NULL
-)
-
-updateActionLink(
-  session = getDefaultReactiveDomain(),
-  inputId,
-  label = NULL,
-  icon = NULL
-)
+updateActionButton(session, inputId, label = NULL, icon = NULL)
 }
 \arguments{
 \item{session}{The \code{session} object passed to function given to
-\code{shinyServer}. Default is \code{getDefaultReactiveDomain()}.}
+\code{shinyServer}.}
 
 \item{inputId}{The id of the input object.}
 
 \item{label}{The label to set for the input object.}
 
-\item{icon}{An optional \code{\link[=icon]{icon()}} to appear on the button.}
-
-\item{disabled}{If \code{TRUE}, the button will not be clickable; if \code{FALSE}, it
-will be.}
+\item{icon}{The icon to set for the input object. To remove the
+current icon, use \code{icon=character(0)}.}
 }
 \description{
 Change the label or icon of an action button on the client
@@ -58,15 +42,13 @@ can be cleared by using \code{selected=character(0)}.
 if (interactive()) {
 
 ui <- fluidPage(
-  actionButton("update", "Update other buttons and link"),
+  actionButton("update", "Update other buttons"),
   br(),
   actionButton("goButton", "Go"),
   br(),
   actionButton("goButton2", "Go 2", icon = icon("area-chart")),
   br(),
-  actionButton("goButton3", "Go 3"),
-  br(),
-  actionLink("goLink", "Go Link")
+  actionButton("goButton3", "Go 3")
 )
 
 server <- function(input, output, session) {
@@ -78,20 +60,15 @@ server <- function(input, output, session) {
       label = "New label",
       icon = icon("calendar"))
 
-    # Leaves goButton2's label unchanged and
+    # Leaves goButton2's label unchaged and
     # removes its icon
     updateActionButton(session, "goButton2",
       icon = character(0))
 
     # Leaves goButton3's icon, if it exists,
-    # unchanged and changes its label
+    # unchaged and changes its label
     updateActionButton(session, "goButton3",
       label = "New label 3")
-
-    # Updates goLink's label and icon
-    updateActionButton(session, "goLink",
-      label = "New link label",
-      icon = icon("link"))
   })
 }
 

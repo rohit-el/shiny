@@ -23,10 +23,7 @@ These functions freeze a \code{\link[=reactiveVal]{reactiveVal()}}, or an elemen
 thing that happens if \code{req(FALSE)} is called. The value is thawed
 (un-frozen; accessing it will no longer raise an exception) when the current
 reactive domain is flushed. In a Shiny application, this occurs after all of
-the observers are executed. \strong{NOTE:} We are considering deprecating
-\code{freezeReactiveVal}, and \code{freezeReactiveValue} except when \code{x} is \code{input}.
-If this affects your app, please let us know by leaving a comment on
-\href{https://github.com/rstudio/shiny/issues/3063}{this GitHub issue}.
+the observers are executed.
 }
 \examples{
 ## Only run this examples in interactive R sessions

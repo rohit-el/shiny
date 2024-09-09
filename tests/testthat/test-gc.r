@@ -1,3 +1,5 @@
+context("garbage collection")
+
 test_that("unreferenced observers are garbage collected", {
   vals_removed <- FALSE
   obs_removed  <- FALSE

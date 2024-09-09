@@ -4,7 +4,8 @@
 \alias{setBookmarkExclude}
 \title{Exclude inputs from bookmarking}
 \usage{
-setBookmarkExclude(names = character(0), session = getDefaultReactiveDomain())
+setBookmarkExclude(names = character(0),
+  session = getDefaultReactiveDomain())
 }
 \arguments{
 \item{names}{A character vector containing names of inputs to exclude from

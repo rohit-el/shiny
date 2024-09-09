@@ -67,9 +67,6 @@
 #'
 #' shinyApp(ui, server)
 #' }
-#' @section Server value:
-#' Character vector of values corresponding to the boxes that are checked.
-#'
 #' @export
 checkboxGroupInput <- function(inputId, label, choices = NULL, selected = NULL,
   inline = FALSE, width = NULL, choiceNames = NULL, choiceValues = NULL) {
@@ -94,14 +91,10 @@ checkboxGroupInput <- function(inputId, label, choices = NULL, selected = NULL,
     divClass <- paste(divClass, "shiny-input-container-inline")
 
   # return label and select tag
-  inputLabel <- shinyInputLabel(inputId, label)
   tags$div(id = inputId,
-    style = css(width = validateCssUnit(width)),
+    style = if (!is.null(width)) paste0("width: ", validateCssUnit(width), ";"),
     class = divClass,
-    # https://www.w3.org/TR/wai-aria-practices/examples/checkbox/checkbox-1/checkbox-1.html
-    role = "group",
-    `aria-labelledby` = inputLabel$attribs$id,
-    inputLabel,
+    shinyInputLabel(inputId, label),
     options
   )
 }

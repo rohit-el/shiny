@@ -22,21 +22,17 @@
 #' }
 #' shinyApp(ui, server)
 #' }
-#'
-#' @section Server value:
-#' `TRUE` if checked, `FALSE` otherwise.
-#'
 #' @export
 checkboxInput <- function(inputId, label, value = FALSE, width = NULL) {
 
   value <- restoreInput(id = inputId, default = value)
 
-  inputTag <- tags$input(id = inputId, type="checkbox", class = "shiny-input-checkbox")
+  inputTag <- tags$input(id = inputId, type="checkbox")
   if (!is.null(value) && value)
     inputTag$attribs$checked <- "checked"
 
   div(class = "form-group shiny-input-container",
-    style = css(width = validateCssUnit(width)),
+    style = if (!is.null(width)) paste0("width: ", validateCssUnit(width), ";"),
     div(class = "checkbox",
       tags$label(inputTag, tags$span(label))
     )

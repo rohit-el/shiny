@@ -4,27 +4,20 @@
 \alias{updateTextInput}
 \title{Change the value of a text input on the client}
 \usage{
-updateTextInput(
-  session = getDefaultReactiveDomain(),
-  inputId,
-  label = NULL,
-  value = NULL,
-  placeholder = NULL
-)
+updateTextInput(session, inputId, label = NULL, value = NULL,
+  placeholder = NULL)
 }
 \arguments{
 \item{session}{The \code{session} object passed to function given to
-\code{shinyServer}. Default is \code{getDefaultReactiveDomain()}.}
+\code{shinyServer}.}
 
 \item{inputId}{The id of the input object.}
 
 \item{label}{The label to set for the input object.}
 
-\item{value}{Initial value.}
+\item{value}{The value to set for the input object.}
 
-\item{placeholder}{A character string giving the user a hint as to what can
-be entered into the control. Internet Explorer 8 and 9 do not support this
-option.}
+\item{placeholder}{The placeholder to set for the input object.}
 }
 \description{
 Change the value of a text input on the client

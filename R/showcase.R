@@ -32,40 +32,26 @@ licenseLink <- function(licenseName) {
 showcaseHead <- function() {
 
   deps  <- list(
-    jqueryuiDependency(),
-    htmlDependency(
-      "showdown",
-      "0.3.1",
-      src = "www/shared/showdown/compressed",
-      package="shiny",
-      script = "showdown.js"
-    ),
-    htmlDependency(
-      "highlight.js",
-      "6.2",
-      src = "www/shared/highlight",
-      package="shiny",
-      script = "highlight.pack.js",
-      stylesheet = "rstudio.css"
-    ),
-    htmlDependency(
-      "showcase",
-      "0.1.0",
-      src = "www/shared",
-      package = "shiny",
-      script = "shiny-showcase.js",
-      stylesheet = "shiny-showcase.css",
-      all_files = FALSE
-    )
+    htmlDependency("jqueryui", "1.12.1", c(href="shared/jqueryui"),
+      script = "jquery-ui.min.js"),
+    htmlDependency("showdown", "0.3.1", c(href="shared/showdown/compressed"),
+      script = "showdown.js"),
+    htmlDependency("highlight.js", "6.2", c(href="shared/highlight"),
+      script = "highlight.pack.js")
   )
 
   mdfile <- file.path.ci(getwd(), 'Readme.md')
-  html <- tagList(
+  html <- with(tags, tagList(
+    script(src="shared/shiny-showcase.js"),
+    link(rel="stylesheet", type="text/css",
+         href="shared/highlight/rstudio.css"),
+    link(rel="stylesheet", type="text/css",
+         href="shared/shiny-showcase.css"),
     if (file.exists(mdfile))
-      tags$script(type="text/markdown", id="showcase-markdown-content",
+      script(type="text/markdown", id="showcase-markdown-content",
         paste(readUTF8(mdfile), collapse="\n"))
     else ""
-  )
+  ))
 
   return(attachDependencies(html, deps))
 }
@@ -97,7 +83,7 @@ navTabsHelper <- function(files, prefix = "") {
     with(tags,
       li(class=if (tolower(file) %in% c("app.r", "server.r")) "active" else "",
          a(href=paste("#", gsub(".", "_", file, fixed=TRUE), "_code", sep=""),
-           "data-toggle"="tab", "data-bs-toggle"="tab", paste0(prefix, file)))
+           "data-toggle"="tab", paste0(prefix, file)))
     )
   })
 }
@@ -106,7 +92,7 @@ navTabsDropdown <- function(files) {
   if (length(files) > 0) {
     with(tags,
       li(role="presentation", class="dropdown",
-        a(class="dropdown-toggle", `data-toggle`="dropdown", `data-bs-toggle`="dropdown", href="#",
+        a(class="dropdown-toggle", `data-toggle`="dropdown", href="#",
           role="button", `aria-haspopup`="true", `aria-expanded`="false",
           "www", span(class="caret")
         ),
@@ -118,18 +104,20 @@ navTabsDropdown <- function(files) {
 
 tabContentHelper <- function(files, path, language) {
   lapply(files, function(file) {
-      tags$div(class=paste("tab-pane",
+    with(tags,
+      div(class=paste("tab-pane",
                       if (tolower(file) %in% c("app.r", "server.r")) " active"
                       else "",
                       sep=""),
           id=paste(gsub(".", "_", file, fixed=TRUE),
                    "_code", sep=""),
-          tags$pre(class="shiny-code",
+          pre(class="shiny-code",
               # we need to prevent the indentation of <code> ... </code>
               HTML(format(tags$code(
                 class=paste0("language-", language),
                 paste(readUTF8(file.path.ci(path, file)), collapse="\n")
               ), indent = FALSE))))
+    )
   })
 }
 
@@ -148,7 +136,7 @@ showcaseCodeTabs <- function(codeLicense) {
     a(id="showcase-code-position-toggle",
       class="btn btn-default btn-sm",
       onclick="toggleCodePosition()",
-      icon("level-up-alt"),
+      icon("level-up"),
       "show with app"),
     ul(class="nav nav-tabs",
        navTabsHelper(rFiles),
@@ -234,3 +222,4 @@ showcaseUI <- function(ui) {
     showcaseBody(ui)
   )
 }
+

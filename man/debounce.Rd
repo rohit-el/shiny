@@ -5,9 +5,11 @@
 \alias{throttle}
 \title{Slow down a reactive expression with debounce/throttle}
 \usage{
-debounce(r, millis, priority = 100, domain = getDefaultReactiveDomain())
+debounce(r, millis, priority = 100,
+  domain = getDefaultReactiveDomain())
 
-throttle(r, millis, priority = 100, domain = getDefaultReactiveDomain())
+throttle(r, millis, priority = 100,
+  domain = getDefaultReactiveDomain())
 }
 \arguments{
 \item{r}{A reactive expression (that invalidates too often).}
@@ -47,7 +49,7 @@ continually arrive from \code{r} within the time window, the debounced
 reactive will not invalidate at all. Only after the invalidations stop (or
 slow down sufficiently) will the downstream invalidation be sent.
 
-\verb{ooo-oo-oo---- => -----------o-}
+\code{ooo-oo-oo---- => -----------o-}
 
 (In this graphical depiction, each character represents a unit of time, and
 the time window is 3 characters.)
@@ -56,10 +58,10 @@ Throttling, on the other hand, delays invalidation if the \emph{throttled}
 reactive recently (within the time window) invalidated. New \code{r}
 invalidations do not reset the time window. This means that if invalidations
 continually come from \code{r} within the time window, the throttled reactive
-will invalidate regularly, at a rate equal to or slower than the time
+will invalidate regularly, at a rate equal to or slower than than the time
 window.
 
-\verb{ooo-oo-oo---- => o--o--o--o---}
+\code{ooo-oo-oo---- => o--o--o--o---}
 }
 \section{Limitations}{
 

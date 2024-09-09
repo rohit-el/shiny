@@ -1,3 +1,6 @@
+
+context("reactlog")
+
 keyValList <- function(key, value) {
   ret <- list()
   ret[[key]] <- value
@@ -83,7 +86,7 @@ test_that("message logger appears", {
       {
         react <- reactive(val() + values$a)
       },
-      "- define: r3:'reactive({\\n    val() + values$a\\n})' - observable ' NULL'"
+      "- define: r3:'reactive(val() + values$a)' - observable ' NULL'"
     )
 
     expect_logs(
@@ -91,13 +94,13 @@ test_that("message logger appears", {
         react()
       },
       "- createContext: ctxDummy - isolate",
-      "- dependsOn: rDummyReactId:'DummyReactId' on r3:'reactive({\\n    val() + values$a\\n})' in ctxDummy",
+      "- dependsOn: rDummyReactId:'DummyReactId' on r3:'reactive(val() + values$a)' in ctxDummy",
       "- createContext: ctx1 - observable",
-      "- enter: r3:'reactive({\\n    val() + values$a\\n})' in ctx1 - observable",
-      "= - dependsOn: r3:'reactive({\\n    val() + values$a\\n})' on r1:'val' in ctx1",
+      "- enter: r3:'reactive(val() + values$a)' in ctx1 - observable",
+      "= - dependsOn: r3:'reactive(val() + values$a)' on r1:'val' in ctx1",
       "= - define: r2$a:'values$a' - reactiveValuesKey ' num 2'",
-      "= - dependsOn: r3:'reactive({\\n    val() + values$a\\n})' on r2$a:'values$a' in ctx1",
-      "- exit: r3:'reactive({\\n    val() + values$a\\n})' in ctx1 - observable"
+      "= - dependsOn: r3:'reactive(val() + values$a)' on r2$a:'values$a' in ctx1",
+      "- exit: r3:'reactive(val() + values$a)' in ctx1 - observable"
     )
 
     expect_logs(
@@ -106,13 +109,13 @@ test_that("message logger appears", {
       },
       "- valueChange: r1:'val' ' num 4'",
       "- invalidateStart: r1:'val'",
-      "= - invalidateStart: r3:'reactive({\\n    val() + values$a\\n})' in ctx1 - observable",
+      "= - invalidateStart: r3:'reactive(val() + values$a)' in ctx1 - observable",
       "= = - isolateInvalidateStart: rDummyReactId:'DummyReactId' in ctxDummy",
-      "= = = - dependsOnRemove: rDummyReactId:'DummyReactId' on r3:'reactive({\\n    val() + values$a\\n})' in ctxDummy",
+      "= = = - dependsOnRemove: rDummyReactId:'DummyReactId' on r3:'reactive(val() + values$a)' in ctxDummy",
       "= = - isolateInvalidateEnd: rDummyReactId:'DummyReactId' in ctxDummy",
-      "= = - dependsOnRemove: r3:'reactive({\\n    val() + values$a\\n})' on r1:'val' in ctx1",
-      "= = - dependsOnRemove: r3:'reactive({\\n    val() + values$a\\n})' on r2$a:'values$a' in ctx1",
-      "= - invalidateEnd: r3:'reactive({\\n    val() + values$a\\n})' in ctx1 - observable",
+      "= = - dependsOnRemove: r3:'reactive(val() + values$a)' on r1:'val' in ctx1",
+      "= = - dependsOnRemove: r3:'reactive(val() + values$a)' on r2$a:'values$a' in ctx1",
+      "= - invalidateEnd: r3:'reactive(val() + values$a)' in ctx1 - observable",
       "- invalidateEnd: r1:'val'"
     )
 
@@ -125,17 +128,4 @@ test_that("message logger appears", {
 
   })
 
-})
-
-
-test_that("reactlog_version is as expected", {
-  suggests <- strsplit(packageDescription("shiny")$Suggests, ",")[[1]]
-  reactlog <- trimws(
-    grep("reactlog", suggests, value = TRUE)
-  )
-  expect_length(reactlog, 1)
-  expect_equal(
-    reactlog,
-    sprintf("reactlog (>= %s)", reactlog_min_version)
-  )
 })

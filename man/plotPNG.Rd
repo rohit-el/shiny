@@ -2,16 +2,10 @@
 % Please edit documentation in R/imageutils.R
 \name{plotPNG}
 \alias{plotPNG}
-\title{Capture a plot as a PNG file.}
+\title{Run a plotting function and save the output as a PNG}
 \usage{
-plotPNG(
-  func,
-  filename = tempfile(fileext = ".png"),
-  width = 400,
-  height = 400,
-  res = 72,
-  ...
-)
+plotPNG(func, filename = tempfile(fileext = ".png"), width = 400,
+  height = 400, res = 72, ...)
 }
 \arguments{
 \item{func}{A function that generates a plot.}
@@ -23,30 +17,27 @@ extension \code{.png}.}
 
 \item{height}{Height in pixels.}
 
-\item{res}{Resolution in pixels per inch. This value is passed to the
-graphics device. Note that this affects the resolution of PNG rendering in
+\item{res}{Resolution in pixels per inch. This value is passed to
+\code{\link[grDevices:png]{grDevices::png()}}. Note that this affects the resolution of PNG rendering in
 R; it won't change the actual ppi of the browser.}
 
-\item{...}{Arguments to be passed through to the graphics device. These can
-be used to set the width, height, background color, etc.}
-}
-\value{
-A path to the newly generated PNG file.
+\item{...}{Arguments to be passed through to \code{\link[grDevices:png]{grDevices::png()}}.
+These can be used to set the width, height, background color, etc.}
 }
 \description{
-The PNG graphics device used is determined in the following order:
-\itemize{
-\item If the ragg package is installed (and the \code{shiny.useragg} is not
-set to \code{FALSE}), then use \code{\link[ragg:agg_png]{ragg::agg_png()}}.
-\item If a quartz device is available (i.e., \code{capabilities("aqua")} is
-\code{TRUE}), then use \code{png(type = "quartz")}.
-\item If the Cairo package is installed (and the \code{shiny.usecairo} option
-is not set to \code{FALSE}), then use \code{\link[Cairo:Cairo]{Cairo::CairoPNG()}}.
-\item Otherwise, use \code{\link[grDevices:png]{grDevices::png()}}. In this case, Linux and Windows
-may not antialias some point shapes, resulting in poor quality output.
-}
+This function returns the name of the PNG file that it generates. In
+essence, it calls \code{png()}, then \code{func()}, then \code{dev.off()}.
+So \code{func} must be a function that will generate a plot when used this
+way.
 }
 \details{
-A \code{NULL} value provided to \code{width} or \code{height} is ignored (i.e., the
-default \code{width} or \code{height} of the graphics device is used).
+For output, it will try to use the following devices, in this order:
+quartz (via \code{\link[grDevices:png]{grDevices::png()}}), then \code{\link[Cairo:CairoPNG]{Cairo::CairoPNG()}},
+and finally \code{\link[grDevices:png]{grDevices::png()}}. This is in order of quality of
+output. Notably, plain \code{png} output on Linux and Windows may not
+antialias some point shapes, resulting in poor quality output.
+
+In some cases, \code{Cairo()} provides output that looks worse than
+\code{png()}. To disable Cairo output for an app, use
+\code{options(shiny.usecairo=FALSE)}.
 }

@@ -76,20 +76,16 @@ absolutePanel <- function(...,
 
   style <- paste(paste(names(cssProps), cssProps, sep = ':', collapse = ';'), ';', sep='')
   divTag <- tags$div(style=style, ...)
-
-  if (identical(draggable, FALSE)) {
+  if (isTRUE(draggable)) {
+    divTag <- tagAppendAttributes(divTag, class='draggable')
+    return(tagList(
+      singleton(tags$head(tags$script(src='shared/jqueryui/jquery-ui.min.js'))),
+      divTag,
+      tags$script('$(".draggable").draggable();')
+    ))
+  } else {
     return(divTag)
   }
-
-  # Add Shiny inputs and htmlwidgets to 'non-draggable' elements
-  # Cf. https://api.jqueryui.com/draggable/#option-cancel
-  dragOpts <- '{cancel: ".shiny-input-container,.html-widget,input,textarea,button,select,option"}'
-  dragJS <- sprintf('$(".draggable").draggable(%s);', dragOpts)
-  tagList(
-    tagAppendAttributes(divTag, class='draggable'),
-    jqueryuiDependency(),
-    tags$script(HTML(dragJS))
-  )
 }
 
 #' @rdname absolutePanel
@@ -102,15 +98,4 @@ fixedPanel <- function(...,
   absolutePanel(..., top=top, left=left, right=right, bottom=bottom,
                 width=width, height=height, draggable=draggable, cursor=match.arg(cursor),
                 fixed=TRUE)
-}
-
-
-jqueryuiDependency <- function() {
-  htmlDependency(
-    "jqueryui",
-    version_jqueryui,
-    src = "www/shared/jqueryui",
-    package = "shiny",
-    script = "jquery-ui.min.js"
-  )
 }

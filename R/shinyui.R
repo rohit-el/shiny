@@ -14,11 +14,7 @@ NULL
 #' # now we can just write "static" content without withMathJax()
 #' div("more math here $$\\sqrt{2}$$")
 withMathJax <- function(...) {
-  path <- paste0(
-    getOption("shiny.mathjax.url", "https://mathjax.rstudio.com/latest/MathJax.js"),
-    "?",
-    getOption("shiny.mathjax.config", "config=TeX-AMS-MML_HTMLorMML")
-  )
+  path <- 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'
   tagList(
     tags$head(
       singleton(tags$script(src = path, type = 'text/javascript'))
@@ -28,9 +24,7 @@ withMathJax <- function(...) {
   )
 }
 
-renderPage <- function(ui, showcase=0, testMode=FALSE) {
-  lang <- getLang(ui)
-
+renderPage <- function(ui, connection, showcase=0, testMode=FALSE) {
   # If the ui is a NOT complete document (created by htmlTemplate()), then do some
   # preprocessing and make sure it's a complete document.
   if (!inherits(ui, "html_document")) {
@@ -43,157 +37,43 @@ renderPage <- function(ui, showcase=0, testMode=FALSE) {
 
     # Put the body into the default template
     ui <- htmlTemplate(
-      system_file("template", "default.html", package = "shiny"),
-      lang = lang,
-      body = ui,
-      # this template is a complete HTML document
-      document_ = TRUE
+      system.file("template", "default.html", package = "shiny"),
+      body = ui
     )
   }
 
-  shiny_deps <- c(
-    list(jqueryDependency()),
-    shinyDependencies()
+  shiny_deps <- list(
+    htmlDependency("json2", "2014.02.04", c(href="shared"), script = "json2-min.js"),
+    htmlDependency("jquery", "1.12.4", c(href="shared"), script = "jquery.min.js"),
+    htmlDependency("shiny", utils::packageVersion("shiny"), c(href="shared"),
+      script = if (getOption("shiny.minified", TRUE)) "shiny.min.js" else "shiny.js",
+      stylesheet = "shiny.css")
   )
 
   if (testMode) {
     # Add code injection listener if in test mode
     shiny_deps[[length(shiny_deps) + 1]] <-
-      htmlDependency(
-        "shiny-testmode",
-        get_package_version("shiny"),
-        src = "www/shared",
-        package = "shiny",
-        script = "shiny-testmode.js",
-        all_files = FALSE
-      )
+      htmlDependency("shiny-testmode", utils::packageVersion("shiny"),
+        c(href="shared"), script = "shiny-testmode.js")
   }
-
-  if (in_devmode() || in_client_devmode()) {
-    # If we're in dev mode, add a simple script to the head that injects a
-    # global variable for the client to use to detect dev mode.
-    shiny_deps[[length(shiny_deps) + 1]] <-
-      htmlDependency(
-        "shiny-devmode",
-        get_package_version("shiny"),
-        src = "www/shared",
-        package = "shiny",
-        head="<script>window.__SHINY_DEV_MODE__ = true;</script>",
-        all_files = FALSE
-      )
-  }
-
 
   html <- renderDocument(ui, shiny_deps, processDep = createWebDependency)
-  enc2utf8(paste(collapse = "\n", html))
-}
-
-jqueryDependency <- function() {
-  version <- getOption("shiny.jquery.version", 3)
-  if (version == 3) {
-    return(htmlDependency(
-      "jquery", version_jquery,
-      src = "www/shared",
-      package = "shiny",
-      script = "jquery.min.js",
-      all_files = FALSE
-    ))
-  }
-  if (version == 1) {
-    return(htmlDependency(
-      "jquery", "1.12.4",
-      src = "www/shared/legacy",
-      package = "shiny",
-      script = "jquery.min.js",
-      all_files = FALSE
-    ))
-  }
-  stop("Unsupported version of jQuery: ", version)
-}
-
-shinyDependencies <- function() {
-  list(
-    bslib::bs_dependency_defer(shinyDependencyCSS),
-    busyIndicatorDependency(),
-    htmlDependency(
-      name = "shiny-javascript",
-      version = get_package_version("shiny"),
-      src = "www/shared",
-      package = "shiny",
-      script =
-        if (isTRUE(
-          get_devmode_option(
-            "shiny.minified",
-            TRUE
-          )
-        ))
-          "shiny.min.js"
-        else
-          "shiny.js",
-      all_files = FALSE
-    )
-  )
-}
-
-shinyDependencySass <- function(bs_version) {
-  bootstrap_scss <- paste0("shiny.bootstrap", bs_version, ".scss")
-
-  scss_home <- system_file("www/shared/shiny_scss", package = "shiny")
-  scss_files <- file.path(scss_home, c(bootstrap_scss, "shiny.scss"))
-  lapply(scss_files, sass::sass_file)
-}
-
-shinyDependencyCSS <- function(theme) {
-  version <- get_package_version("shiny")
-
-  if (!is_bs_theme(theme)) {
-    return(htmlDependency(
-      name = "shiny-css",
-      version = version,
-      src = "www/shared",
-      package = "shiny",
-      stylesheet = "shiny.min.css",
-      all_files = FALSE
-    ))
-  }
-
-  bs_version <- bslib::theme_version(theme)
-
-  bslib::bs_dependency(
-    input = shinyDependencySass(bs_version),
-    theme = theme,
-    name = "shiny-sass",
-    version = version,
-    cache_key_extra = version
-  )
+  writeUTF8(html, con = connection)
 }
 
 #' Create a Shiny UI handler
 #'
-#' @description `r lifecycle::badge("superseded")`
-#'
-#' @description Historically this function was used in ui.R files to register a user
+#' Historically this function was used in ui.R files to register a user
 #' interface with Shiny. It is no longer required as of Shiny 0.10; simply
 #' ensure that the last expression to be returned from ui.R is a user interface.
 #' This function is kept for backwards compatibility with older applications. It
 #' returns the value that is passed to it.
 #'
-#' @param ui A user interface definition
+#' @param ui A user interace definition
 #' @return The user interface definition, without modifications or side effects.
 #' @keywords internal
 #' @export
 shinyUI <- function(ui) {
-  if (in_devmode()) {
-    shinyDeprecated(
-      "0.10.0", "shinyUI()",
-      details = paste0(
-        "When removing `shinyUI()`, ",
-        "ensure that the last expression returned from ui.R is a user interface ",
-        "normally supplied to `shinyUI(ui)`."
-      )
-    )
-  }
-
   .globals$ui <- list(ui)
   ui
 }
@@ -202,17 +82,15 @@ uiHttpHandler <- function(ui, uiPattern = "^/$") {
 
   force(ui)
 
-  allowed_methods <- "GET"
-  if (is.function(ui)) {
-    allowed_methods <- attr(ui, "http_methods_supported", exact = TRUE) %||% allowed_methods
-  }
-
   function(req) {
-    if (!isTRUE(req$REQUEST_METHOD %in% allowed_methods))
+    if (!identical(req$REQUEST_METHOD, 'GET'))
       return(NULL)
 
     if (!isTRUE(grepl(uiPattern, req$PATH_INFO)))
       return(NULL)
+
+    textConn <- file(open = "w+")
+    on.exit(close(textConn))
 
     showcaseMode <- .globals$showcaseDefault
     if (.globals$showcaseOverride) {
@@ -221,7 +99,7 @@ uiHttpHandler <- function(ui, uiPattern = "^/$") {
         showcaseMode <- mode
     }
 
-    testMode <- getShinyOption("testmode", default = FALSE)
+    testMode <- .globals$testMode %OR% FALSE
 
     # Create a restore context using query string
     bookmarkStore <- getShinyOption("bookmarkStore", default = "disable")
@@ -253,11 +131,8 @@ uiHttpHandler <- function(ui, uiPattern = "^/$") {
     if (is.null(uiValue))
       return(NULL)
 
-    if (inherits(uiValue, "httpResponse")) {
-      return(uiValue)
-    } else {
-      html <- renderPage(uiValue, showcaseMode, testMode)
-      return(httpResponse(200, content=html))
-    }
+    renderPage(uiValue, textConn, showcaseMode, testMode)
+    html <- paste(readLines(textConn, encoding = 'UTF-8'), collapse='\n')
+    return(httpResponse(200, content=enc2utf8(html)))
   }
 }

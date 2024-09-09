@@ -1,3 +1,5 @@
+context("Parse Shiny Input")
+
 test_that("A new type can be registered successfully", {
   expect_error(
     registerInputHandler("shiny.someType", function(){}),

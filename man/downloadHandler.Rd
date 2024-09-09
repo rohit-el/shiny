@@ -4,7 +4,8 @@
 \alias{downloadHandler}
 \title{File Downloads}
 \usage{
-downloadHandler(filename, content, contentType = NULL, outputArgs = list())
+downloadHandler(filename, content, contentType = NA,
+  outputArgs = list())
 }
 \arguments{
 \item{filename}{A string of the filename, including extension, that the
@@ -18,10 +19,10 @@ that file path. (Reactive values and functions may be used from this
 function.)}
 
 \item{contentType}{A string of the download's
-\href{https://en.wikipedia.org/wiki/Internet_media_type}{content type}, for
-example \code{"text/csv"} or \code{"image/png"}. If \code{NULL}, the content type
-will be guessed based on the filename extension, or
-\code{application/octet-stream} if the extension is unknown.}
+\href{http://en.wikipedia.org/wiki/Internet_media_type}{content type}, for
+example \code{"text/csv"} or \code{"image/png"}. If \code{NULL} or
+\code{NA}, the content type will be guessed based on the filename
+extension, or \code{application/octet-stream} if the extension is unknown.}
 
 \item{outputArgs}{A list of arguments to be passed through to the implicit
 call to \code{\link[=downloadButton]{downloadButton()}} when \code{downloadHandler} is used
@@ -41,7 +42,7 @@ download available.
 if (interactive()) {
 
 ui <- fluidPage(
-  downloadButton("downloadData", "Download")
+  downloadLink("downloadData", "Download")
 )
 
 server <- function(input, output) {

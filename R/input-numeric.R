@@ -24,10 +24,6 @@
 #' }
 #' shinyApp(ui, server)
 #' }
-#'
-#' @section Server value:
-#' A numeric vector of length 1.
-#'
 #' @export
 numericInput <- function(inputId, label, value, min = NA, max = NA, step = NA,
   width = NULL) {
@@ -35,7 +31,7 @@ numericInput <- function(inputId, label, value, min = NA, max = NA, step = NA,
   value <- restoreInput(id = inputId, default = value)
 
   # build input tag
-  inputTag <- tags$input(id = inputId, type = "number", class="shiny-input-number form-control",
+  inputTag <- tags$input(id = inputId, type = "number", class="form-control",
                          value = formatNoSci(value))
   if (!is.na(min))
     inputTag$attribs$min = min
@@ -45,7 +41,7 @@ numericInput <- function(inputId, label, value, min = NA, max = NA, step = NA,
     inputTag$attribs$step = step
 
   div(class = "form-group shiny-input-container",
-    style = css(width = validateCssUnit(width)),
+    style = if (!is.null(width)) paste0("width: ", validateCssUnit(width), ";"),
     shinyInputLabel(inputId, label),
     inputTag
   )

@@ -5,9 +5,7 @@
 \alias{NS}
 \alias{ns.sep}
 \title{Namespaced IDs for inputs/outputs}
-\format{
-An object of class \code{character} of length 1.
-}
+\format{An object of class \code{character} of length 1.}
 \usage{
 NS(namespace, id = NULL)
 
@@ -29,7 +27,7 @@ as its only argument and returns that id with the namespace prepended.
 \description{
 The \code{NS} function creates namespaced IDs out of bare IDs, by joining
 them using \code{ns.sep} as the delimiter. It is intended for use in Shiny
-modules. See \url{https://shiny.rstudio.com/articles/modules.html}.
+modules. See \url{http://shiny.rstudio.com/articles/modules.html}.
 }
 \details{
 Shiny applications use IDs to identify inputs and outputs. These IDs must be
@@ -40,6 +38,6 @@ as a directory is to a file. Use the \code{NS} function to turn a bare ID
 into a namespaced one, by combining them with \code{ns.sep} in between.
 }
 \seealso{
-\url{https://shiny.rstudio.com/articles/modules.html}
+\url{http://shiny.rstudio.com/articles/modules.html}
 }
 \keyword{datasets}
