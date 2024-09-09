@@ -309,7 +309,11 @@ RestoreContext <- R6Class("RestoreContext",
         }
       }
 
-      loadInterface(id, loadFun)
+      if (length(parseQueryString(queryString)$run_id) == 0) {
+        loadInterface(id, loadFun)
+      } else {
+        loadInterface(id, loadFun, parseQueryString(queryString)$run_id)
+      }
 
       invisible()
     },

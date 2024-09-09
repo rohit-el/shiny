@@ -49,11 +49,6 @@ contents_identical <- function(a, b) {
   TRUE
 }
 
-# Don't print out stack traces (which go to stderr)
-suppress_stacktrace <- function(expr) {
-  capture.output(force(expr), type = "message")
-}
-
 # Rewire copies the given function, f, and replaces any named
 # provided arguments in its execution.
 # Note #1: this only substitutes variables at the top-level function
